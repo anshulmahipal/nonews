@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isGuest() {
+      return request.auth.token.firebase.sign_in_provider == 'anonymous';
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow read: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+    }
+
+    // Bookmarks
+    match /bookmarks/{bookmarkId} {
+      allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.userId;
+      
+      // Guest users can only create up to 5 bookmarks
+      allow create: if isGuest() && 
+        request.auth.uid == request.resource.data.userId && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.bookmarkCount < 5);
+    }
+
+    // Waitlist - public write for joining, no read access
+    match /waitlist/{entryId} {
+      // Anyone can add themselves to waitlist (no auth required)
+      allow create: if request.resource.data.keys().hasAll(['email', 'createdAt']) &&
+                       request.resource.data.email is string &&
+                       request.resource.data.email.size() > 5 &&
+                       request.resource.data.email.size() < 100 &&
+                       request.resource.data.createdAt is string;
+      
+      // Only admins can read (implement admin check in future)
+      allow read: if false;
+      allow update, delete: if false;
+    }
+  }
+}

@@ -1,0 +1,507 @@
+# Cursor Rules for noNews Bookmarking App
+
+## Project Overview
+- **Type**: Bookmarking application with guest user support
+- **Architecture**: Monolithic project with Firebase backend and React Native frontend
+- **Backend**: Firebase Functions v2 (Node.js 22), Firestore, Authentication, Storage
+- **Frontend**: React Native (iOS/Android cross-platform)
+- **Language**: TypeScript (strict mode)
+- **Key Feature**: Guest users limited to 5 bookmarks
+
+---
+
+## Project Structure
+
+```
+/
+├── functions/              # Firebase Cloud Functions
+│   ├── src/               # Function source code
+│   ├── lib/               # Compiled JS (gitignored)
+│   └── package.json       # Backend dependencies
+├── src/                   # React Native app source
+│   ├── components/        # Reusable UI components
+│   ├── screens/           # Screen components
+│   ├── navigation/        # Navigation setup
+│   ├── services/          # API and Firebase services
+│   ├── hooks/             # Custom React hooks
+│   ├── contexts/          # React Context providers
+│   ├── utils/             # Utility functions
+│   ├── types/             # TypeScript type definitions
+│   ├── assets/            # Images, fonts, etc.
+│   └── config/            # Configuration files
+├── firebase.json          # Firebase configuration
+├── firestore.rules        # Firestore security rules
+├── storage.rules          # Storage security rules
+└── package.json           # Frontend dependencies
+```
+
+---
+
+## General Guidelines
+
+### Code Style
+- Use **TypeScript** for all new code (both frontend and backend)
+- Follow **ESLint** and **Prettier** configurations
+- Use **functional components** with hooks in React Native
+- Prefer **arrow functions** for component definitions
+- Use **async/await** over promises chains
+- Always add **JSDoc comments** for complex functions
+
+### Naming Conventions
+- **PascalCase**: Components, types, interfaces, classes
+- **camelCase**: Variables, functions, methods, hooks
+- **UPPER_SNAKE_CASE**: Constants, environment variables
+- **kebab-case**: File names for utilities and services
+- **PascalCase**: File names for components
+
+### File Organization
+- One component per file
+- Keep files under 300 lines (split if larger)
+- Co-locate related files (component + styles + tests)
+- Group by feature, not by type
+
+---
+
+## Firebase Backend Rules
+
+### Cloud Functions (v2 API)
+- **API Version**: Firebase Functions v2 (firebase-functions v6+)
+- **Runtime**: Node.js 22
+- **Structure**: Modular function structure organized by feature
+- **Naming**: Descriptive names: `onUserCreate`, `onBookmarkCreate`, `upgradeGuestAccount`
+- **Error Handling**: Always wrap in try-catch with proper error responses
+- **Validation**: Validate inputs in Cloud Functions (not just rules)
+- **Authentication**: Check auth context before executing sensitive operations
+- **Logging**: Use `firebase-functions/logger` for structured logging
+- **Cost Control**: Global `maxInstances: 10` set to prevent cost spikes
+- **Imports**: Use v2 API imports
+
+```typescript
+// Example Cloud Function (v2 API)
+import {onCall, HttpsError} from "firebase-functions/v2/https";
+import {getFirestore} from "firebase-admin/firestore";
+import * as logger from "firebase-functions/logger";
+
+const db = getFirestore();
+
+export const updateUserProfile = onCall(async (request) => {
+  // Check authentication
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'User must be authenticated');
+  }
+
+  const {displayName, bio} = request.data;
+
+  // Validate input
+  if (!displayName || displayName.length < 2 || displayName.length > 50) {
+    throw new HttpsError('invalid-argument', 'Invalid display name');
+  }
+
+  try {
+    await db.collection('users').doc(request.auth.uid).update({
+      displayName,
+      bio: bio || '',
+      updatedAt: new Date().toISOString(),
+    });
+
+    logger.info('Profile updated', {userId: request.auth.uid});
+    return {success: true};
+  } catch (err) {
+    logger.error('Error updating profile', {error: err, userId: request.auth.uid});
+    throw new HttpsError('internal', 'Failed to update profile');
+  }
+});
+```
+
+### Firestore
+- **Collections**: Use plural names (users, bookmarks)
+- **Document IDs**: Use auto-generated IDs
+- **Data Model**:
+  - `users/{userId}`: User profiles with `bookmarkCount`, `isAnonymous`
+  - `bookmarks/{bookmarkId}`: User bookmarks with `userId`, `url`, `title`, etc.
+- **Timestamps**: Always include `createdAt` and `updatedAt` (ISO strings)
+- **Soft Deletes**: Use `deletedAt` field for important data
+- **Queries**: Add indexes to `firestore.indexes.json` as needed
+- **Batch Operations**: Use batch writes for multiple document updates
+- **Guest Users**: Track bookmark count, enforce 5 bookmark limit
+
+### Security Rules
+- **Default Deny**: Start with deny all, then allow specific operations
+- **Authentication**: Verify user authentication status with `isSignedIn()`
+- **Authorization**: Check user ownership with `isOwner(userId)`
+- **Guest Detection**: Use `isGuest()` to identify anonymous users
+- **Guest Limits**: Enforce 5 bookmark limit for guest users in rules
+- **Owner Isolation**: Users can only access their own data
+
+```javascript
+// Current Firestore Rules Pattern
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isGuest() {
+      return request.auth.token.firebase.sign_in_provider == 'anonymous';
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && isOwner(userId);
+      allow create, update: if isSignedIn() && isOwner(userId);
+    }
+
+    match /bookmarks/{bookmarkId} {
+      allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.userId;
+      
+      // Guest bookmark limit
+      allow create: if isGuest() && 
+        request.auth.uid == request.resource.data.userId && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.bookmarkCount < 5);
+    }
+  }
+}
+```
+
+### Firebase Authentication
+- Use Firebase Auth for all authentication
+- **Support Anonymous Auth**: For guest users (5 bookmark limit)
+- Store additional user data in Firestore `users` collection
+- Trigger Cloud Function (`onUserCreate`) to initialize profile
+- Handle auth state changes in app initialization
+- **Guest to Registered**: Provide upgrade flow with `linkWithCredential()`
+- Track `isAnonymous` status in user profile
+
+---
+
+## React Native Frontend Rules
+
+### Component Structure
+- **Functional Components**: Always use functional components with hooks
+- **Props Interface**: Define TypeScript interface for all props
+- **Default Props**: Use default parameters instead of defaultProps
+- **Memo**: Use `React.memo` for expensive components
+- **Hooks**: Extract complex logic into custom hooks
+
+```typescript
+// Example Component
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+
+interface ArticleCardProps {
+  title: string;
+  author: string;
+  onPress?: () => void;
+}
+
+export const ArticleCard: React.FC<ArticleCardProps> = ({ 
+  title, 
+  author, 
+  onPress 
+}) => {
+  // Component logic
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.author}>{author}</Text>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  author: {
+    fontSize: 14,
+    color: '#666',
+  },
+});
+```
+
+### State Management
+- **Local State**: Use `useState` for component-local state
+- **Global State**: Use React Context for app-wide state
+- **Complex State**: Consider Zustand or Redux Toolkit for complex state
+- **Server State**: Use React Query or SWR for Firebase data
+- **Avoid**: Prop drilling - use Context or state management library
+
+### Firebase Integration
+- **Service Layer**: Create dedicated services for Firebase operations
+- **Hooks**: Create custom hooks for Firebase operations
+- **Real-time Listeners**: Clean up listeners in useEffect cleanup
+- **Error Handling**: Handle network errors and show user-friendly messages
+- **Loading States**: Always show loading indicators during async operations
+
+```typescript
+// Example Firebase Hook
+import { useState, useEffect } from 'react';
+import { firestore } from '../services/firebase';
+
+export const useArticles = () => {
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = firestore()
+      .collection('articles')
+      .orderBy('createdAt', 'desc')
+      .limit(20)
+      .onSnapshot(
+        (snapshot) => {
+          const data = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setArticles(data);
+          setLoading(false);
+        },
+        (err) => {
+          setError(err.message);
+          setLoading(false);
+        }
+      );
+
+    return () => unsubscribe();
+  }, []);
+
+  return { articles, loading, error };
+};
+```
+
+### Navigation
+- Use React Navigation (v6+)
+- Define navigation types for type safety
+- Use stack, tab, and drawer navigators as needed
+- Handle deep linking for push notifications
+
+### Styling
+- **StyleSheet**: Use React Native StyleSheet API
+- **Consistency**: Define theme colors and spacing in constants
+- **Responsive**: Use Dimensions API or responsive libraries
+- **Platform-Specific**: Use `Platform.select()` when needed
+- **Dark Mode**: Support dark mode using theme context
+
+### Performance
+- **FlatList**: Use FlatList for lists, not ScrollView with map
+- **Memoization**: Memoize expensive computations with useMemo
+- **Callbacks**: Memoize callbacks with useCallback
+- **Images**: Optimize images, use proper resizeMode
+- **Avoid**: Inline functions and styles in render
+
+### Error Handling
+- Use Error Boundaries for component errors
+- Handle async errors with try-catch
+- Show user-friendly error messages
+- Log errors to Firebase Crashlytics
+- Provide fallback UI for errors
+
+---
+
+## Testing Guidelines
+
+### Unit Tests
+- Test utility functions and business logic
+- Use Jest for testing
+- Mock Firebase services
+- Aim for >80% coverage on critical paths
+
+### Component Tests
+- Use React Native Testing Library
+- Test user interactions and rendering
+- Mock navigation and Firebase hooks
+- Focus on behavior, not implementation
+
+### Integration Tests
+- Test critical user flows
+- Use Detox for E2E testing
+- Test on both iOS and Android
+- Automate with CI/CD
+
+---
+
+## Security Best Practices
+
+### Frontend
+- Never store sensitive data in AsyncStorage unencrypted
+- Validate all user inputs before sending to backend
+- Use Firebase Auth for authentication
+- Handle auth token refresh automatically
+- Don't log sensitive information
+
+### Backend
+- Validate all inputs in Cloud Functions
+- Use Firebase Admin SDK with proper permissions
+- Implement rate limiting for public endpoints
+- Never expose API keys or secrets
+- Use environment variables for configuration
+
+### Firestore Rules
+- Always validate data schema in rules
+- Check user permissions before allowing operations
+- Prevent data leakage through security rules
+- Test security rules thoroughly
+- Review rules regularly
+
+---
+
+## Environment Configuration
+
+### Development
+- Use `.env.development` for dev Firebase config
+- Enable debug logging
+- Use development Firebase project
+
+### Production
+- Use `.env.production` for prod Firebase config
+- Disable debug logging
+- Enable Crashlytics and Analytics
+- Use production Firebase project
+
+---
+
+## Common Patterns
+
+### Loading States
+```typescript
+if (loading) return <LoadingSpinner />;
+if (error) return <ErrorMessage message={error} />;
+return <DataComponent data={data} />;
+```
+
+### Error Handling
+```typescript
+try {
+  await firebaseOperation();
+  showSuccessMessage();
+} catch (error) {
+  console.error('Operation failed:', error);
+  showErrorMessage(error.message);
+}
+```
+
+### Form Handling
+- Use react-hook-form for complex forms
+- Validate with Yup or Zod schemas
+- Show inline validation errors
+- Disable submit during submission
+
+---
+
+## Anti-Patterns to Avoid
+
+❌ **Don't**: Store large objects in state unnecessarily
+❌ **Don't**: Make Firebase calls directly in components
+❌ **Don't**: Use index as key in lists
+❌ **Don't**: Forget to clean up listeners and subscriptions
+❌ **Don't**: Use `any` type in TypeScript
+❌ **Don't**: Hard-code strings (use i18n for user-facing text)
+❌ **Don't**: Ignore TypeScript errors
+❌ **Don't**: Skip error handling in async operations
+❌ **Don't**: Store sensitive data in client-side code
+❌ **Don't**: Use synchronous storage operations
+
+---
+
+## Dependencies Management
+
+### Frontend
+- Keep React Native version stable
+- Update dependencies regularly but carefully
+- Test thoroughly after updates
+- Use exact versions for critical packages
+- Document breaking changes
+
+### Backend
+- Keep Firebase Admin SDK updated
+- Pin function runtime version
+- Review security updates
+- Test functions after dependency updates
+
+---
+
+## Git Workflow
+
+- Use feature branches: `feature/article-comments`
+- Write descriptive commit messages
+- Squash commits before merging
+- Review PRs before merging
+- Keep main branch stable
+
+---
+
+## Documentation
+
+- Document complex business logic
+- Keep README updated
+- Document environment setup
+- Maintain API documentation
+- Document Firebase schema
+
+---
+
+## Performance Monitoring
+
+- Use Firebase Performance Monitoring
+- Track key user flows
+- Monitor Cloud Function execution times
+- Track app startup time
+- Monitor network requests
+
+---
+
+## Accessibility
+
+- Add accessibility labels to interactive elements
+- Support screen readers
+- Ensure proper contrast ratios
+- Test with accessibility tools
+- Support dynamic text sizing
+
+---
+
+## Internationalization (i18n)
+
+- Use react-i18next or similar library
+- Extract all user-facing strings
+- Support RTL languages if needed
+- Store translations in organized structure
+- Fallback to default language
+
+---
+
+## Analytics
+
+- Track key user events
+- Implement Firebase Analytics
+- Track conversion funnels
+- Monitor user retention
+- Respect user privacy settings
+
+---
+
+## Best Practices Summary
+
+✅ Write type-safe TypeScript code
+✅ Handle all error cases gracefully
+✅ Test critical functionality
+✅ Follow consistent code style
+✅ Document complex logic
+✅ Optimize for performance
+✅ Secure user data
+✅ Monitor app health
+✅ Keep dependencies updated
+✅ Review code before merging
+

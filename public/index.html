@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="no news - Your personal reading sanctuary. Save what matters, read without noise.">
+    <meta name="keywords" content="bookmarking, reading, articles, no news">
+    <meta name="author" content="no news">
+
+    <title>no news - Your personal reading sanctuary</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nonews.in/">
+    <meta property="og:title" content="no news - Your personal reading sanctuary">
+    <meta property="og:description" content="Save what matters, read without noise.">
+    <meta property="og:image" content="https://nonews.in/favicon.png">
+    <meta property="og:image:alt" content="no news app icon">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="no news">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://nonews.in/">
+    <meta name="twitter:title" content="no news - Your personal reading sanctuary">
+    <meta name="twitter:description" content="Save what matters, read without noise.">
+    <meta name="twitter:image" content="https://nonews.in/favicon.png">
+    <meta name="twitter:image:alt" content="no news app icon">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Hero Section -->
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <img src="favicon.png" alt="no news logo" class="logo-icon-img">
+                <h1 class="app-name">no news</h1>
+            </div>
+            <p class="tagline">Your personal reading sanctuary</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <section class="hero">
+                <h2 class="hero-title">Save what matters.<br>Read without noise.</h2>
+                <p class="hero-description">
+                    A beautiful, distraction-free space to collect and revisit the articles,
+                    ideas, and stories that truly matter to you.
+                </p>
+            </section>
+
+            <!-- Features -->
+            <section class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">🔖</div>
+                    <div class="feature-content">
+                        <h3 class="feature-title">Smart Bookmarking</h3>
+                        <p class="feature-description">Save articles instantly from any source</p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <div class="feature-content">
+                        <h3 class="feature-title">Focus on Quality</h3>
+                        <p class="feature-description">No distractions, just your curated collection</p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🌙</div>
+                    <div class="feature-content">
+                        <h3 class="feature-title">Beautiful Reading</h3>
+                        <p class="feature-description">Clean interface designed for comfort</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Waitlist Form -->
+            <section class="waitlist-section">
+                <h2 class="form-title">Join the Waitlist</h2>
+                <p class="form-subtitle">Be the first to know when we launch</p>
+
+                <form id="waitlistForm" class="waitlist-form">
+                    <div class="form-group">
+                        <input type="text" id="name" name="name" placeholder="Name (optional)" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <input type="email" id="email" name="email" placeholder="Email address *" class="form-input"
+                            required>
+                        <span class="error-message" id="emailError"></span>
+                    </div>
+
+                    <button type="submit" class="submit-button" id="submitButton">
+                        Join Waitlist
+                    </button>
+
+                    <p class="privacy-note">We respect your privacy. No spam, ever.</p>
+                </form>
+
+                <!-- Success Message (hidden by default) -->
+                <div id="successMessage" class="success-message hidden">
+                    <div class="success-icon">🎉</div>
+                    <h3>Welcome aboard!</h3>
+                    <p>You've been added to our waitlist. We'll notify you when we launch!</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p class="footer-text">Made with ❤️ for mindful readers</p>
+        </footer>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>

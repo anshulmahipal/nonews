@@ -1,0 +1,60 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    function isValidSize(maxSizeMB) {
+      return request.resource.size < maxSizeMB * 1024 * 1024;
+    }
+    
+    // User profile images
+    match /users/{userId}/profile/{fileName} {
+      // Anyone can read profile images
+      allow read: if true;
+      
+      // Only owner can upload/update their profile image
+      allow write: if isAuthenticated() 
+        && isOwner(userId)
+        && isImage()
+        && isValidSize(5); // Max 5MB
+    }
+    
+    // Article images
+    match /articles/{articleId}/{fileName} {
+      // Anyone can read article images
+      allow read: if true;
+      
+      // Authenticated users can upload images
+      allow write: if isAuthenticated()
+        && isImage()
+        && isValidSize(10); // Max 10MB
+    }
+    
+    // Temporary uploads
+    match /temp/{userId}/{fileName} {
+      // Only owner can read/write temp files
+      allow read, write: if isAuthenticated() 
+        && isOwner(userId)
+        && isValidSize(10); // Max 10MB
+    }
+    
+    // Default deny all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+

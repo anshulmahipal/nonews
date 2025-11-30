@@ -23,10 +23,15 @@ setGlobalOptions({ maxInstances: 3 });
 export * from "./bookmarks/onBookmarkCreate";
 export * from "./bookmarks/onBookmarkDelete";
 
+// Setup functions (run once)
+export * from "./setup/initializeSources";
+
+// Fetch editorial functions
+export * from "./fetcheditorial/theHindu";
+
 // Callable functions (uncomment as you create them)
 // export * from "./callable/upgradeGuestAccount";
 // export * from "./callable/fetchBookmarkMetadata";
 
 // Scheduled functions (uncomment as you create them)
 // export * from "./scheduled/cleanupOldBookmarks";
-export * from "./fetcheditorial/theHindu";

@@ -46,5 +46,24 @@ service cloud.firestore {
       allow read: if false;
       allow update, delete: if false;
     }
+
+    // Editorials - written by Cloud Functions, read by authenticated users
+    match /editorials/{editorialId} {
+      // Authenticated users can read editorials
+      allow read: if isSignedIn();
+      
+      // Only Cloud Functions can write (no request.auth check)
+      // This works because Cloud Functions use Admin SDK which bypasses rules
+      allow create, update, delete: if false;
+    }
+
+    // Sources - read by authenticated users, written by Cloud Functions
+    match /sources/{sourceId} {
+      // Authenticated users can read sources (to display icons, names, etc.)
+      allow read: if isSignedIn();
+      
+      // Only Cloud Functions can write
+      allow create, update, delete: if false;
+    }
   }
 }

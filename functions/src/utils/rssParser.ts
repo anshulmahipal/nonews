@@ -35,9 +35,9 @@ export function parseRSS(xmlText: string): ParsedArticle[] {
 
         // Extract individual fields
         const title = extractTag(itemContent, "title");
-        const link = extractTag(itemContent, "link");
+        const link = cleanText(extractTag(itemContent, "link"));
         const description = extractTag(itemContent, "description");
-        const pubDate = extractTag(itemContent, "pubDate");
+        const pubDate = cleanText(extractTag(itemContent, "pubDate"));
         const guid = extractTag(itemContent, "guid");
 
         // Extract category if available
@@ -110,35 +110,54 @@ export function cleanText(text: string): string {
  * Extract RSS feed metadata
  * 
  * @param xmlText - Raw RSS XML content
- * @returns Feed metadata (title, description, link)
+ * @returns Feed metadata (title, description, link, lastBuildDate)
  */
 export function extractFeedMetadata(xmlText: string): {
     title: string;
     description: string;
     link: string;
+    lastBuildDate: string | null;
+    lastBuildDateISO: string | null;
 } {
     // Extract channel-level metadata
     const channelMatch = xmlText.match(/<channel>([\s\S]*?)<\/channel>/);
     const channelContent = channelMatch ? channelMatch[1] : "";
 
+    const lastBuildDate = extractTag(channelContent, "lastBuildDate");
+    let lastBuildDateISO: string | null = null;
+
+    if (lastBuildDate) {
+        try {
+            const date = new Date(lastBuildDate);
+            if (!isNaN(date.getTime())) {
+                lastBuildDateISO = date.toISOString();
+            }
+        } catch (error) {
+            // Invalid date
+            lastBuildDateISO = null;
+        }
+    }
+
     return {
         title: cleanText(extractTag(channelContent, "title")),
         description: cleanText(extractTag(channelContent, "description")),
-        link: extractTag(channelContent, "link").trim()
+        link: extractTag(channelContent, "link").trim(),
+        lastBuildDate: lastBuildDate || null,
+        lastBuildDateISO: lastBuildDateISO
     };
 }
 
 /**
  * Get the 24-hour time window from yesterday 6 AM to today 6 AM (IST)
  * 
+ * IST is UTC+5:30, so 6 AM IST = 00:30 UTC
+ * 
  * @returns Object with startTime and endTime Date objects
  * 
  * @example
- * // If current time is Oct 17, 2025 at 10:00 AM IST
- * // Returns: { startTime: Oct 16 06:00 AM IST, endTime: Oct 17 06:00 AM IST }
- * 
- * // If current time is Oct 17, 2025 at 2:00 AM IST
- * // Returns: { startTime: Oct 15 06:00 AM IST, endTime: Oct 16 06:00 AM IST }
+ * // If current time is Nov 5, 2025 at 10:00 AM IST
+ * // Returns: { startTime: Nov 4 00:30 UTC, endTime: Nov 5 00:30 UTC }
+ * //          (which is Nov 4 6AM IST to Nov 5 6AM IST)
  */
 export function get6AMto6AMWindow(timezone: string = "Asia/Kolkata"): {
     startTime: Date;
@@ -146,48 +165,40 @@ export function get6AMto6AMWindow(timezone: string = "Asia/Kolkata"): {
 } {
     const now = new Date();
 
-    // Get current hour in IST (0-23)
-    const istFormatter = new Intl.DateTimeFormat("en-US", {
-        timeZone: timezone,
-        hour: "numeric",
-        hour12: false
-    });
-    const currentHourIST = parseInt(istFormatter.format(now));
+    // IST is UTC+5:30, so 6 AM IST = 0:30 AM UTC (same day)
+    const IST_OFFSET_HOURS = 5;
+    const IST_OFFSET_MINUTES = 30;
+    const IST_OFFSET_MS = (IST_OFFSET_HOURS * 60 + IST_OFFSET_MINUTES) * 60 * 1000;
 
-    // Get current date in IST
-    const istDateFormatter = new Intl.DateTimeFormat("en-US", {
-        timeZone: timezone,
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit"
-    });
-    const istDateParts = istDateFormatter.format(now).split("/");
-    const month = parseInt(istDateParts[0]) - 1; // 0-indexed
-    const day = parseInt(istDateParts[1]);
-    const year = parseInt(istDateParts[2]);
+    // Get current time in IST by adding offset to UTC
+    const nowInIST = new Date(now.getTime() + IST_OFFSET_MS);
 
-    // Create today at 6 AM in IST (UTC)
-    // IST is UTC+5:30, so 6 AM IST = 0:30 AM UTC
-    const todayAt6AMIST = new Date(Date.UTC(year, month, day, 0, 30, 0, 0));
+    // Get today's date in IST
+    const istYear = nowInIST.getUTCFullYear();
+    const istMonth = nowInIST.getUTCMonth();
+    const istDay = nowInIST.getUTCDate();
+    const istHour = nowInIST.getUTCHours();
 
-    // Create yesterday at 6 AM in IST (UTC)
-    const yesterdayAt6AMIST = new Date(todayAt6AMIST);
-    yesterdayAt6AMIST.setDate(yesterdayAt6AMIST.getDate() - 1);
+    // Create today at 6 AM IST (which is 0:30 AM UTC)
+    // Date.UTC creates a UTC date, we want 0:30 UTC for 6 AM IST
+    const todayAt6AMIST_UTC = Date.UTC(istYear, istMonth, istDay, 0, 30, 0, 0);
 
-    // If current time is after 6 AM IST, window is yesterday 6 AM to today 6 AM
-    // If current time is before 6 AM IST, window is day before yesterday 6 AM to yesterday 6 AM
-    if (currentHourIST >= 6) {
+    // Create yesterday at 6 AM IST
+    const yesterdayAt6AMIST_UTC = todayAt6AMIST_UTC - 24 * 60 * 60 * 1000;
+
+    // Determine which window based on current IST hour
+    if (istHour >= 6) {
+        // After 6 AM IST: window is yesterday 6 AM to today 6 AM
         return {
-            startTime: yesterdayAt6AMIST,
-            endTime: todayAt6AMIST
+            startTime: new Date(yesterdayAt6AMIST_UTC),
+            endTime: new Date(todayAt6AMIST_UTC)
         };
     } else {
-        const dayBeforeYesterdayAt6AMIST = new Date(yesterdayAt6AMIST);
-        dayBeforeYesterdayAt6AMIST.setDate(dayBeforeYesterdayAt6AMIST.getDate() - 1);
-
+        // Before 6 AM IST: window is day before yesterday 6 AM to yesterday 6 AM
+        const dayBeforeYesterdayAt6AMIST_UTC = yesterdayAt6AMIST_UTC - 24 * 60 * 60 * 1000;
         return {
-            startTime: dayBeforeYesterdayAt6AMIST,
-            endTime: yesterdayAt6AMIST
+            startTime: new Date(dayBeforeYesterdayAt6AMIST_UTC),
+            endTime: new Date(yesterdayAt6AMIST_UTC)
         };
     }
 }
@@ -211,7 +222,32 @@ export function filterArticlesByDate(
         }
 
         const publishedDate = new Date(article.publishedAt);
-        return publishedDate >= startTime && publishedDate <= endTime;
+        const publishedTime = publishedDate.getTime();
+        const startTimeMs = startTime.getTime();
+        const endTimeMs = endTime.getTime();
+
+        // Include articles within the range
+        return publishedTime >= startTimeMs && publishedTime <= endTimeMs;
+    });
+}
+
+/**
+ * Get articles from last 24 hours (simpler alternative)
+ * 
+ * @param articles - Array of parsed articles
+ * @returns Articles from last 24 hours
+ */
+export function getRecentArticles(articles: ParsedArticle[]): ParsedArticle[] {
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    return articles.filter(article => {
+        if (!article.publishedAt) {
+            return false;
+        }
+
+        const publishedDate = new Date(article.publishedAt);
+        return publishedDate >= twentyFourHoursAgo && publishedDate <= now;
     });
 }
 

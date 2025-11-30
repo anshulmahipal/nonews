@@ -3,8 +3,8 @@
     "scripts": {
         "build": "tsc",
         "build:watch": "tsc --watch",
-        "serve": "npm run build && firebase emulators:start --only functions, firestore",
-        "shell": "npm run build && firebase functions:shell",
+        "serve": "npm run build && NODE_OPTIONS='--no-deprecation' firebase emulators:start --only functions, firestore",
+        "shell": "npm run build && NODE_OPTIONS='--no-deprecation' firebase functions:shell",
         "start": "npm run shell",
         "deploy": "firebase deploy --only functions",
         "logs": "firebase functions:log"
@@ -14,12 +14,13 @@
     },
     "main": "lib/index.js",
     "dependencies": {
+        "cheerio": "^1.1.2",
         "firebase-admin": "^12.6.0",
-        "firebase-functions": "^6.0.1"
+        "firebase-functions": "^6.6.0"
     },
     "devDependencies": {
-        "typescript": "^5.7.3",
-        "firebase-functions-test": "^3.1.0"
+        "firebase-functions-test": "^3.1.0",
+        "typescript": "^5.7.3"
     },
     "private": true
 }

@@ -8,6 +8,42 @@ Reusable utility functions for Firebase Cloud Functions.
 
 RSS/XML parsing utilities for fetching and parsing news feeds.
 
+### `firestoreUtils.ts`
+
+Firestore database operations for saving and managing articles.
+
+**Exports:**
+
+- `saveArticlesToFirestore(articles, source, collectionName?)` - Save articles to Firestore
+- `getArticlesBySource(source, limit?, collectionName?)` - Get articles by source
+- `getRecentArticles(limit?, collectionName?)` - Get recent articles
+- `deleteOldArticles(daysOld?, collectionName?)` - Delete old articles
+- `articleExists(guid, collectionName?)` - Check if article exists
+
+**Interfaces:**
+
+- `SaveResults` - Save operation results (saved, skipped, errors)
+- `ArticleData` - Article data structure for Firestore
+
+**Usage Example:**
+
+```typescript
+import { saveArticlesToFirestore, getRecentArticles } from "./utils/firestoreUtils";
+
+// Save articles
+const results = await saveArticlesToFirestore(articles, "The Hindu - Opinion");
+console.log(`Saved: ${results.saved}, Skipped: ${results.skipped}`);
+
+// Get recent articles
+const recent = await getRecentArticles(20);
+```
+
+---
+
+### `rssParser.ts`
+
+RSS/XML parsing utilities for fetching and parsing news feeds.
+
 **Exports:**
 
 - `parseRSS(xmlText: string): ParsedArticle[]` - Parse RSS XML and extract articles

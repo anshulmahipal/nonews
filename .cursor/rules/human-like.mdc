@@ -1,0 +1,7 @@
+---
+alwaysApply: true
+---
+- **Architecture**: Clean Architecture. Use `packages/shared` for business logic.
+- **Rules**: Every summary must be ~80 words. Author stance is mandatory.
+- **Batch**: Ingestion happens at 5:00 AM IST (23:30 UTC).
+- **Style**: Serif fonts for editorial content. No "AI-sounding" intros in summaries.

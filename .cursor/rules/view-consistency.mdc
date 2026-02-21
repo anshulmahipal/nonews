@@ -1,0 +1,53 @@
+---
+description: Consistent screen layout and styling across Expo app
+globs: apps/expo/**/*.tsx
+---
+
+# View Consistency – Editorial Quick Read (Expo)
+
+All screens must follow this layout and styling pattern for a unified "Digital Magazine" feel.
+
+## Screen Shell
+- **Container**: `SafeAreaView` with `edges={["top"]}` (use `["top","bottom"]` only for full-screen modals or login).
+- **Background**: `backgroundColor: "#f8fafc"` (slate-50).
+- **Root**: `flex: 1` on the main container.
+
+## Typography
+- **Screen titles**: `fontSize: 28`, `fontWeight: "600"`, `color: "#0f172a"`, `fontFamily: "Georgia"` for editorial screens.
+- **Subtitle / metadata**: `fontSize: 14`, `color: "#64748b"`.
+- **Body / empty state title**: `fontSize: 18`, `color: "#64748b"`.
+- **Empty state subtitle**: `fontSize: 14`, `color: "#94a3b8"`.
+
+## Header
+- **Padding**: `paddingHorizontal: 16`, `paddingTop: 16`, `paddingBottom: 8`.
+- **Structure**: Title + optional subtitle. Use `flexDirection: "row"` with `justifyContent: "space-between"` when adding nav links (e.g. "Saved").
+- **Nav links**: `fontSize: 14`, `fontWeight: "500"`, `color: "#0f172a"`.
+
+## Loading State
+- **Container**: `flex: 1`, `alignItems: "center"`, `justifyContent: "center"`.
+- **Spinner**: `ActivityIndicator` with `size="large"` and `color="#0f172a"`.
+- **Text**: `marginTop: 12`, `fontSize: 14`, `color: "#64748b"`.
+
+## Error State
+- **Container**: Same as loading (centered, full flex).
+- **Text**: `textAlign: "center"`, `color: "#dc2626"`, `fontSize: 16`, `paddingHorizontal: 32`.
+
+## Empty State
+- **Container**: `flex: 1`, `alignItems: "center"`, `justifyContent: "center"`, `paddingHorizontal: 32`.
+- **Illustration**: Optional icon (e.g. Lucide) with `marginBottom: 24`, muted color (e.g. `#cbd5e1`).
+- **Title**: `fontSize: 18`, `color: "#64748b"`, `fontFamily: "Georgia"` for editorial screens.
+- **Subtitle**: `marginTop: 8`, `fontSize: 14`, `color: "#94a3b8"`.
+
+## List / Scroll Content
+- **Padding**: `paddingHorizontal: 16`, `paddingBottom: 32`, `paddingTop: 8`.
+- **FlatList**: Use `showsVerticalScrollIndicator={false}`.
+- **Article lists**: Use `SummaryCard` with `useBookmarks` for bookmark toggle.
+
+## Article Screens
+- Single-article view: Use `ScrollView` with same content padding as list screens.
+- Always pass `isBookmarked` and `onToggleBookmark` to `SummaryCard`.
+
+## Buttons
+- **Primary**: `backgroundColor: "#0f172a"`, white text.
+- **Secondary**: Transparent with `borderWidth: 1`, `borderColor: "#0f172a"`.
+- **Pressed**: `opacity: 0.7`–`0.9`.

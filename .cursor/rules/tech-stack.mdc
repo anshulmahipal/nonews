@@ -1,0 +1,18 @@
+---
+alwaysApply: true
+---
+---
+description: Global tech stack and coding standards
+globs: **/*
+---
+# Tech Stack & Coding Standards
+- **Architecture**: Clean Architecture (Domain-Driven).
+- **Frontend**: Next.js (Web), Expo/React Native (Mobile) using NativeWind (Tailwind).
+- **Backend**: Supabase (Edge Functions, Cron, Postgres).
+- **AI**: Gemini 1.5 Flash (80-word constraint).
+
+# Human-Like Code Rules
+- Use meaningful variable names (e.g., `dailyEditorialQueue` instead of `data`).
+- Avoid deeply nested `if` statements; use guard clauses.
+- Write "Self-Documenting" code with JSDoc comments.
+- Organize folders by FEATURE, not just by layer.

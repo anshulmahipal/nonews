@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2",
+    "linkedom": "https://esm.sh/linkedom@0.18.12/worker",
+    "@mozilla/readability": "https://esm.sh/@mozilla/readability@0.6.0"
+  }
+}

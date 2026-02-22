@@ -1,0 +1,12 @@
+{
+  "buildCommand": "npm run build --workspace=@nonews/web",
+  "outputDirectory": "apps/web/.next",
+  "installCommand": "npm install",
+  "framework": null,
+  "crons": [
+    {
+      "path": "/api/cron/morning-edition",
+      "schedule": "30 23 * * *"
+    }
+  ]
+}

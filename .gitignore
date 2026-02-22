@@ -20,6 +20,7 @@ firebase-debug.*.log
 .env.local
 .env.development
 .env.production
+supabase/functions/.env
 
 # IDE
 .vscode/

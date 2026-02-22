@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@source "../../../packages/ui/src";
+
+@theme {
+  --font-serif: Georgia, serif;
+}

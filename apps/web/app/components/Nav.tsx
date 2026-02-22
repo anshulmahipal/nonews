@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 const iconClass = "h-[18px] w-[18px] shrink-0";
@@ -72,10 +73,23 @@ export function Nav() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <Link
           href="/"
-          className="shrink-0 text-lg font-semibold text-slate-900 transition-opacity hover:opacity-90"
-          style={{ fontFamily: "Georgia, serif" }}
+          className="flex shrink-0 items-center gap-2 transition-opacity hover:opacity-90"
+          aria-label="NoNews home"
         >
-          NoNews
+          <Image
+            src="/logo.png"
+            alt=""
+            width={32}
+            height={32}
+            className="h-8 w-8 rounded-md object-contain"
+            priority
+          />
+          <span
+            className="text-lg font-semibold text-slate-900"
+            style={{ fontFamily: "Georgia, serif" }}
+          >
+            NoNews
+          </span>
         </Link>
         <div className="flex items-center justify-center gap-1 sm:gap-4">
         {navItems.map(({ href, label, icon }) => {

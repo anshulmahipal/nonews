@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   },
   description:
     "80-word editorial summaries from trusted sources. Stay informed, not overwhelmed. nonews.in",
+  icons: {
+    icon: "/icon.png",
+  },
   openGraph: {
     siteName: "NoNews",
     locale: "en_IN",

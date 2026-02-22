@@ -2,9 +2,9 @@
 
 import { createSupabaseClient } from "@nonews/shared";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
-export default function LoginPage() {
+function LoginContent() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(
@@ -90,5 +90,19 @@ export default function LoginPage() {
         ← Back to articles
       </a>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="mx-auto flex min-h-[80vh] max-w-md flex-col items-center justify-center px-6">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-slate-900" />
+        </main>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

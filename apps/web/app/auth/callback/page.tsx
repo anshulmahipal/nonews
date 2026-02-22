@@ -2,7 +2,7 @@
 
 import { createSupabaseClient } from "@nonews/shared";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 /** Parse hash fragment into key-value pairs */
 function parseHash(hash: string): Record<string, string> {
@@ -16,7 +16,7 @@ function parseHash(hash: string): Record<string, string> {
   return params;
 }
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
 
@@ -86,5 +86,20 @@ export default function AuthCallbackPage() {
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-slate-900" />
       <p className="mt-4 text-slate-600">Completing sign-in…</p>
     </main>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center px-6">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-slate-900" />
+          <p className="mt-4 text-slate-600">Completing sign-in…</p>
+        </main>
+      }
+    >
+      <AuthCallbackContent />
+    </Suspense>
   );
 }

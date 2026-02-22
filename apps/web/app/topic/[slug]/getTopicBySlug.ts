@@ -25,7 +25,8 @@ export async function getTopicBySlug(slug: string): Promise<TopicPageData | null
     .select("id, category")
     .eq("is_active", true);
 
-  const matchingSources = (sources ?? []).filter((s) => categoryToSlug(s.category) === slug);
+  const sourcesRows = (sources ?? []) as { id: string; category: string }[];
+  const matchingSources = sourcesRows.filter((s) => categoryToSlug(s.category) === slug);
   if (matchingSources.length === 0) return null;
 
   const sourceIds = matchingSources.map((s) => s.id);
@@ -58,7 +59,8 @@ export async function getAllTopicSlugs(): Promise<{ slug: string }[]> {
     .eq("is_active", true);
 
   const slugs = new Set<string>();
-  for (const row of data ?? []) {
+  const categoryRows = (data ?? []) as { category: string }[];
+  for (const row of categoryRows) {
     const s = categoryToSlug(row.category);
     if (s) slugs.add(s);
   }

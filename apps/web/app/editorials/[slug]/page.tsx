@@ -27,7 +27,8 @@ export async function generateStaticParams() {
     .from("articles")
     .select("id")
     .eq("status", "completed");
-  return (data ?? []).map((row) => ({ slug: row.id }));
+  const rows = (data ?? []) as { id: string }[];
+  return rows.map((row) => ({ slug: row.id }));
 }
 
 /** Article row with source_id and source category for related-articles logic. */

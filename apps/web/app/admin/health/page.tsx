@@ -4,7 +4,7 @@ import { createSupabaseClient } from "@nonews/shared";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useCallback, useState } from "react";
-import type { SourceStatus } from "@nonews/shared";
+import type { SourceRow, SourceStatus } from "@nonews/shared";
 
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
@@ -51,6 +51,16 @@ function getTodayUtc(): string {
   return new Date().toISOString().split("T")[0];
 }
 
+/** Sync log row as returned by the admin sync_logs query. */
+type SyncLogRow = {
+  id: string;
+  run_started_at: string;
+  run_finished_at: string | null;
+  articles_succeeded: number;
+  articles_failed: number;
+  rate_limits_hit: boolean;
+};
+
 export default function AdminHealthPage() {
   const queryClient = useQueryClient();
   const [retrying, setRetrying] = useState(false);
@@ -85,7 +95,7 @@ export default function AdminHealthPage() {
     },
   });
 
-  const { data: sources, isLoading: sourcesLoading } = useQuery({
+  const { data: sources, isLoading: sourcesLoading } = useQuery<SourceRow[]>({
     queryKey: ["admin", "sources"],
     queryFn: async () => {
       const supabase = createSupabaseClient();
@@ -94,11 +104,11 @@ export default function AdminHealthPage() {
         .select("id, name, rss_url, category, is_active, status, last_synced_at, last_error_message")
         .order("name");
       if (error) throw error;
-      return data;
+      return (data ?? []) as SourceRow[];
     },
   });
 
-  const { data: syncLogs, isLoading: syncLogsLoading } = useQuery({
+  const { data: syncLogs, isLoading: syncLogsLoading } = useQuery<SyncLogRow[]>({
     queryKey: ["admin", "sync_logs"],
     queryFn: async () => {
       const supabase = createSupabaseClient();
@@ -108,7 +118,7 @@ export default function AdminHealthPage() {
         .order("run_started_at", { ascending: false })
         .limit(10);
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as SyncLogRow[];
     },
   });
 

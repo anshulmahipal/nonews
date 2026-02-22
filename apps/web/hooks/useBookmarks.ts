@@ -19,7 +19,8 @@ async function fetchBookmarkedArticleIds(): Promise<Set<string>> {
     .eq("user_id", session.user.id);
 
   if (error) return new Set();
-  return new Set((data ?? []).map((row) => row.article_id));
+  const rows = (data ?? []) as { article_id: string }[];
+  return new Set(rows.map((row) => row.article_id));
 }
 
 /**
@@ -84,7 +85,8 @@ export function useBookmarks() {
             .eq("article_id", articleId);
           if (error) throw error;
         } else {
-          const { error } = await supabase.from("bookmarks").insert({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase inferred Insert as never for bookmarks
+          const { error } = await (supabase.from("bookmarks") as any).insert({
             user_id: userId,
             article_id: articleId,
           });

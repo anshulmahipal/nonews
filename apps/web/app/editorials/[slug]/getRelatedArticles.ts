@@ -30,7 +30,8 @@ export async function getRelatedArticles(
       .order("published_at", { ascending: false })
       .limit(RELATED_LIMIT);
 
-    for (const row of byAuthor ?? []) {
+    const byAuthorRows = (byAuthor ?? []) as ArticleWithSource[];
+    for (const row of byAuthorRows) {
       if (!seenIds.has(row.id)) {
         seenIds.add(row.id);
         result.push(row as ArticleWithSource);
@@ -51,7 +52,8 @@ export async function getRelatedArticles(
     .order("published_at", { ascending: false })
     .limit(needed + seenIds.size);
 
-  for (const row of byCategory ?? []) {
+  const byCategoryRows = (byCategory ?? []) as ArticleWithSource[];
+  for (const row of byCategoryRows) {
     if (result.length >= RELATED_LIMIT) break;
     if (!seenIds.has(row.id)) {
       seenIds.add(row.id);

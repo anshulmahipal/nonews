@@ -24,8 +24,9 @@ export async function getAuthorBySlug(slug: string): Promise<AuthorPageData | nu
     .not("author", "is", null)
     .eq("status", "completed");
 
+  const rows = (authorRows ?? []) as { author: string | null }[];
   const distinctNames = Array.from(
-    new Set((authorRows ?? []).map((r) => (r.author as string).trim()).filter(Boolean))
+    new Set(rows.map((r) => (r.author as string).trim()).filter(Boolean))
   );
   const authorName = distinctNames.find((name) => authorNameToSlug(name) === slug) ?? null;
   if (!authorName) return null;
@@ -52,8 +53,9 @@ export async function getAllAuthorSlugs(): Promise<{ slug: string }[]> {
     .not("author", "is", null)
     .eq("status", "completed");
 
+  const rows = (data ?? []) as { author: string | null }[];
   const names = Array.from(
-    new Set((data ?? []).map((r) => (r.author as string).trim()).filter(Boolean))
+    new Set(rows.map((r) => (r.author as string).trim()).filter(Boolean))
   );
   const slugSet = new Set<string>();
   for (const name of names) {

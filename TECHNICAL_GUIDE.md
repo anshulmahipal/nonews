@@ -66,6 +66,24 @@ curl -X POST "https://<project-ref>.supabase.co/functions/v1/ai-processor" \
 
 **Important:** Run `ai-processor` after `daily-ingestor` finishes. The ai-processor processes all rows with `status = 'pending'`.
 
+**Option C: Run the pipeline now (one-off)**
+
+If the 5 AM cron didn’t run and counts are unchanged, run the full pipeline manually:
+
+```bash
+SUPABASE_URL=https://<project-ref>.supabase.co SUPABASE_SERVICE_ROLE_KEY=<key> npx ts-node scripts/run-morning-pipeline.ts
+```
+
+**Option D: Vercel Cron (recommended for production)**
+
+The Next.js app includes a cron route that runs at 23:30 UTC when deployed on Vercel. Set in Vercel env:
+
+- `CRON_SECRET` – random string (≥16 chars); Vercel sends it as `Authorization: Bearer <CRON_SECRET>`.
+- `SUPABASE_URL` – your project URL.
+- `SUPABASE_SERVICE_ROLE_KEY` – used to invoke the Edge Functions.
+
+Cron config: `apps/web/vercel.json` → `path`: `/api/cron/morning-edition`, `schedule`: `30 23 * * *`.
+
 ---
 
 ## 2. Adding a New RSS Source

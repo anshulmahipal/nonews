@@ -4,7 +4,7 @@
 
 import { createSupabaseClient } from "@nonews/shared";
 import type { ArticleWithSource } from "@nonews/ui";
-import { authorNameToSlug } from "../../../lib/authorSlug";
+import { authorNameToSlug } from "../../../utils/slugs";
 
 export interface AuthorPageData {
   authorName: string;

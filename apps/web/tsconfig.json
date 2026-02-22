@@ -15,6 +15,7 @@
     "incremental": true,
     "plugins": [{ "name": "next" }],
     "paths": {
+      "@/*": ["./*"],
       "@nonews/shared": ["../../packages/shared/src"],
       "@nonews/shared/*": ["../../packages/shared/src/*"]
     }

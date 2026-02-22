@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseClient, APP_NAME } from "@nonews/shared";
 import type { ArticleWithSource } from "@nonews/ui";
-import { authorNameToSlug, categoryToSlug } from "../../../utils/slugs";
+import { authorNameToSlug, categoryToSlug } from "@/utils/slugs";
 import { getEditorialBySlug } from "./getEditorialBySlug";
 import { getRelatedArticles } from "./getRelatedArticles";
 import { EditorialCardClient } from "./EditorialCardClient";

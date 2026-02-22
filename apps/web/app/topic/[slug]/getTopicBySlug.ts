@@ -5,7 +5,7 @@
 
 import { createSupabaseClient } from "@nonews/shared";
 import type { ArticleWithSource } from "@nonews/ui";
-import { categoryToSlug } from "../../../utils/slugs";
+import { categoryToSlug } from "@/utils/slugs";
 
 export interface TopicPageData {
   topicName: string;

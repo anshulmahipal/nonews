@@ -1,12 +1,6 @@
 {
-  "buildCommand": "npm run build --workspace=@nonews/web",
-  "outputDirectory": "apps/web/.next",
+  "crons": [{"path": "/api/cron/morning-edition", "schedule": "30 23 * * *"}],
   "installCommand": "npm install",
-  "framework": null,
-  "crons": [
-    {
-      "path": "/api/cron/morning-edition",
-      "schedule": "30 23 * * *"
-    }
-  ]
+  "buildCommand": "npx turbo build --filter=@nonews/web",
+  "outputDirectory": "apps/web/.next"
 }

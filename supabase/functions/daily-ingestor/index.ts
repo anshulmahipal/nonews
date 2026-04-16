@@ -252,10 +252,13 @@ Deno.serve(async (req) => {
       processed_date: processedDate,
     };
 
-    const { data, error } = await supabase.from("articles").upsert(article, {
-      onConflict: "guid",
-      ignoreDuplicates: true,
-    });
+    const { data, error } = await supabase
+      .from("articles")
+      .upsert(article, {
+        onConflict: "guid",
+        ignoreDuplicates: true,
+      })
+      .select("id");
 
     if (error) {
       failed++;
@@ -279,13 +282,19 @@ Deno.serve(async (req) => {
       .eq("id", source.id);
   }
 
+  const message =
+    toProcess.length === 0
+      ? "No recent RSS items found in the last 24 hours for the selected sources."
+      : `Ingested ${toProcess.length} articles: ${inserted} new, ${skipped} duplicates, ${failed} errors.`;
+
   return new Response(
     JSON.stringify({
+      active_sources: sources.length,
       processed: toProcess.length,
       inserted,
       skipped,
       failed,
-      message: `Ingested ${toProcess.length} articles: ${inserted} new, ${skipped} duplicates, ${failed} errors.`,
+      message,
     }),
     { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );

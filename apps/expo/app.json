@@ -1,1 +1,53 @@
-{"expo":{"name":"NoNews","slug":"nonews","version":"1.0.0","orientation":"portrait","scheme":"editorialapp","userInterfaceStyle":"automatic","newArchEnabled":true,"splash":{"image":"./assets/icon.png","resizeMode":"contain","backgroundColor":"#000000"},"ios":{"supportsTablet":true,"bundleIdentifier":"com.nonews.app","usesAppleSignIn":true},"android":{"adaptiveIcon":{"foregroundImage":"./assets/adaptive-icon.png","backgroundColor":"#000000"},"package":"com.nonews.app"},"plugins":["expo-router",["expo-notifications",{"defaultChannel":"default"}],["@react-native-google-signin/google-signin",{"iosUrlScheme":"com.googleusercontent.apps.PLACEHOLDER"}]],"experiments":{"typedRoutes":true},"extra":{"eas":{"projectId":"d53c752f-32ec-418b-b823-dd221af14fe8"}}}}
+{
+  "expo": {
+    "name": "NoNews",
+    "slug": "nonews",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "editorialapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.logicnib.nonews",
+      "usesAppleSignIn": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000"
+      },
+      "package": "com.logicnib.nonews"
+    },
+    "plugins": [
+      "expo-updates",
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "default"
+        }
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.PLACEHOLDER"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0d6de4ca-7c11-4ad8-b616-8383718fede2"
+      }
+    },
+    "owner": "logicnib"
+  }
+}

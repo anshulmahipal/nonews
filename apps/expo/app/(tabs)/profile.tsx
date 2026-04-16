@@ -1,11 +1,14 @@
 import { supabase } from "../../lib/supabase";
-import { router } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
+import { router, useFocusEffect } from "expo-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 import { ChevronRight, FileText, Info, LogOut, Mail, Shield, User } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ProfileTab() {
+  const queryClient = useQueryClient();
+
   const { data: session } = useQuery({
     queryKey: ["session"],
     queryFn: async () => {
@@ -14,9 +17,15 @@ export default function ProfileTab() {
     },
   });
 
+  useFocusEffect(
+    useCallback(() => {
+      void queryClient.invalidateQueries({ queryKey: ["session"] });
+    }, [queryClient])
+  );
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.replace("/login");
+    router.replace("/(tabs)");
   };
 
   const email = session?.user?.email ?? null;
@@ -90,16 +99,28 @@ export default function ProfileTab() {
       </View>
 
       <View style={styles.actions}>
-        <Pressable
-          onPress={handleSignOut}
-          style={({ pressed }) => [
-            styles.signOutButton,
-            pressed && styles.signOutButtonPressed,
-          ]}
-        >
-          <LogOut size={20} color="#dc2626" />
-          <Text style={styles.signOutText}>Sign out</Text>
-        </Pressable>
+        {session?.user ? (
+          <Pressable
+            onPress={handleSignOut}
+            style={({ pressed }) => [
+              styles.signOutButton,
+              pressed && styles.signOutButtonPressed,
+            ]}
+          >
+            <LogOut size={20} color="#dc2626" />
+            <Text style={styles.signOutText}>Sign out</Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={() => router.push("/login")}
+            style={({ pressed }) => [
+              styles.signInButton,
+              pressed && styles.signInButtonPressed,
+            ]}
+          >
+            <Text style={styles.signInText}>Sign in</Text>
+          </Pressable>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -211,5 +232,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#dc2626",
+  },
+  signInButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    backgroundColor: "#0f172a",
+  },
+  signInButtonPressed: { opacity: 0.85 },
+  signInText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#fff",
   },
 });

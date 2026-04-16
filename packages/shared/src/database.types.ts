@@ -65,6 +65,7 @@ export interface Database {
           last_error_message?: string | null;
           status?: SourceStatus;
         };
+        Relationships: [];
       };
       authors: {
         Row: {
@@ -94,6 +95,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       articles: {
         Row: {
@@ -150,6 +152,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       profiles: {
         Row: {
@@ -173,6 +176,34 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
+      };
+      feedback: {
+        Row: {
+          id: string;
+          name: string;
+          subject: string;
+          message: string;
+          user_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          subject: string;
+          message: string;
+          user_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          subject?: string;
+          message?: string;
+          user_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
       };
       bookmark_folders: {
         Row: {
@@ -196,6 +227,7 @@ export interface Database {
           color?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       follows: {
         Row: {
@@ -213,6 +245,7 @@ export interface Database {
           author_id?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       bookmarks: {
         Row: {
@@ -233,6 +266,7 @@ export interface Database {
           folder_id?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       sync_logs: {
         Row: {
@@ -261,6 +295,7 @@ export interface Database {
           rate_limits_hit?: boolean;
           created_at?: string;
         };
+        Relationships: [];
       };
     };
     Views: Record<string, never>;

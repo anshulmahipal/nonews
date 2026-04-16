@@ -28,3 +28,7 @@ export type {
   SourceCreate,
 } from "./domain";
 export { simplifySummary } from "./ai";
+export {
+  EDITORIAL_FEED_SELECT,
+  fetchLatestCompletedEditorials,
+} from "./editorialFeed";

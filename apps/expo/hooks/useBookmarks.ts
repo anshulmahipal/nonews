@@ -7,9 +7,12 @@ import { supabase } from "../lib/supabase";
 const BOOKMARKS_QUERY_KEY = ["bookmarks"] as const;
 
 async function fetchBookmarkedArticleIds(): Promise<Set<string>> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const session = await Promise.race([
+    supabase.auth.getSession().then(({ data }) => data.session ?? null),
+    new Promise<null>((resolve) => {
+      setTimeout(() => resolve(null), 2_500);
+    }),
+  ]);
   if (!session?.user) return new Set();
 
   const { data, error } = await supabase

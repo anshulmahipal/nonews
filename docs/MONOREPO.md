@@ -5,6 +5,8 @@
 - **`apps/expo`** – Expo (React Native) app with Expo Router
 - **`apps/web`** – Next.js app
 - **`packages/shared`** – Supabase client and TypeScript types (sources, articles)
+- **`packages/ui`** – Shared UI components used by web and mobile
+- **`archive/mobile-legacy`** – Old duplicate Expo shell kept only for reference; not part of the active workspace
 
 ## Commands (from repo root)
 
@@ -22,6 +24,12 @@ npm run dev
 npm run dev --workspace=@nonews/expo
 npm run dev --workspace=@nonews/web
 ```
+
+## Canonical App Paths
+
+- Use `apps/expo` for all active mobile work.
+- Use `apps/web` for the web app.
+- Do not build new features in `archive/mobile-legacy`.
 
 ## Metro (Expo) and shared package
 

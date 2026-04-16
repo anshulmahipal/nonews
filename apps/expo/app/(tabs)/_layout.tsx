@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Home, BookMark, Users, User } from "lucide-react-native";
+import { Home, Bookmark, Users, User } from "lucide-react-native";
 
 export default function TabsLayout() {
   return (
@@ -26,7 +26,7 @@ export default function TabsLayout() {
         name="saved"
         options={{
           title: "Library",
-          tabBarIcon: ({ color, size }) => <BookMark size={size ?? 24} color={color} />,
+          tabBarIcon: ({ color, size }) => <Bookmark size={size ?? 24} color={color} />,
         }}
       />
       <Tabs.Screen

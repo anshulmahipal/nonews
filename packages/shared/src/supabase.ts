@@ -4,10 +4,11 @@
  * or EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY (Expo).
  */
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient as SupabaseClientTyped } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 
-export type SupabaseClient = ReturnType<typeof createClient<Database>>;
+/** Typed client; use explicit generic so table Row/Insert types resolve (not `never`). */
+export type SupabaseClient = SupabaseClientTyped<Database>;
 
 const getEnvUrl = (): string => {
   if (typeof process !== "undefined") {
@@ -37,6 +38,9 @@ export interface SupabaseClientOptions {
     setItem: (key: string, value: string) => Promise<void>;
     removeItem: (key: string) => Promise<void>;
   };
+  /** Overrides env (e.g. Expo `Constants.expoConfig.extra`). */
+  url?: string;
+  anonKey?: string;
 }
 
 /**
@@ -44,8 +48,8 @@ export interface SupabaseClientOptions {
  * Pass storage for React Native to persist auth session (e.g. AsyncStorage).
  */
 export function createSupabaseClient(options?: SupabaseClientOptions): SupabaseClient {
-  const url = getEnvUrl();
-  const anonKey = getEnvAnonKey();
+  const url = options?.url ?? getEnvUrl();
+  const anonKey = options?.anonKey ?? getEnvAnonKey();
   if (!url || !anonKey) {
     throw new Error(
       "Missing Supabase env: set NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY or EXPO_PUBLIC_* equivalents"

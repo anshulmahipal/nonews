@@ -14,14 +14,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.nonews.mobile"
+      "bundleIdentifier": "com.logicnib.nonews"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.nonews.mobile"
+      "package": "com.logicnib.nonews"
     },
     "plugins": ["expo-router"],
     "experiments": {

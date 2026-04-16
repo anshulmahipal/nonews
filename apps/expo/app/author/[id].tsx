@@ -1,5 +1,5 @@
-import { useBookmarks } from "../../../hooks/useBookmarks";
-import { supabase } from "../../../lib/supabase";
+import { useBookmarks } from "../../hooks/useBookmarks";
+import { supabase } from "../../lib/supabase";
 import { SummaryCard, type ArticleWithSource } from "@nonews/ui";
 import type { AuthorStance } from "@nonews/shared";
 import { useQuery, useQueryClient } from "@tanstack/react-query";

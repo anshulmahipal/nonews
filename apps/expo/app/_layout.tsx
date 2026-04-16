@@ -1,13 +1,13 @@
 import { Stack, router } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Linking } from "react-native";
 import { supabase } from "../lib/supabase";
 import { usePushNotifications } from "../hooks/usePushNotifications";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { isGoogleSignInNativeAvailable } from "../lib/googleSignIn";
+import { StyleSheet } from "react-native";
 
 const SCHEME = "editorialapp";
 
@@ -27,19 +27,17 @@ function parseDeepLinkUrl(url: string | null): { pathname: string; params?: { id
 
 const queryClient = new QueryClient();
 
-// Configure Google Sign-In (webClientId from Google Cloud Console)
-const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
-if (GOOGLE_WEB_CLIENT_ID) {
-  GoogleSignin.configure({
-    webClientId: GOOGLE_WEB_CLIENT_ID,
-  });
-}
-
 export default function RootLayout() {
-  const [authReady, setAuthReady] = useState(false);
-  const [initialSession, setInitialSession] = useState<boolean | null>(null);
-
   usePushNotifications();
+
+  useEffect(() => {
+    const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+    if (!webClientId || !isGoogleSignInNativeAvailable()) return;
+    // require() keeps this off the critical path in Expo Go (no static import of native module).
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { GoogleSignin } = require("@react-native-google-signin/google-signin");
+    GoogleSignin.configure({ webClientId });
+  }, []);
 
   useEffect(() => {
     const subscription = Linking.addEventListener("url", (event) => {
@@ -55,55 +53,33 @@ export default function RootLayout() {
     return () => subscription.remove();
   }, []);
 
-  const hasDoneInitialNav = useRef(false);
-
+  /** Cold-start deep link only; default route is `app/index` → `/(tabs)`. */
   useEffect(() => {
-    let cancelled = false;
+    let alive = true;
 
-    Promise.all([
-      Linking.getInitialURL(),
-      supabase.auth.getSession().then(({ data: { session } }) => !!session),
-    ]).then(([url, hasSession]) => {
-      if (cancelled) return;
-      setInitialSession(hasSession);
-      setAuthReady(true);
+    void (async () => {
+      const initialUrl = await Linking.getInitialURL().catch(() => null);
+      if (!alive) return;
 
-      const parsed = parseDeepLinkUrl(url);
-      if (parsed) {
-        if (parsed.params?.id) {
-          router.replace({ pathname: "/article/[id]", params: { id: parsed.params.id } });
-        } else {
-          router.replace("/(tabs)");
-        }
-      } else {
-        if (hasSession) router.replace("/(tabs)");
-        else router.replace("/login");
+      const parsed = parseDeepLinkUrl(initialUrl);
+      if (parsed?.params?.id) {
+        router.replace({ pathname: "/article/[id]", params: { id: parsed.params.id } });
+      } else if (parsed) {
+        router.replace("/(tabs)");
       }
-      hasDoneInitialNav.current = true;
-    });
+    })();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setInitialSession(!!session);
-      if (!hasDoneInitialNav.current) return;
       if (session) router.replace("/(tabs)");
-      else router.replace("/login");
     });
 
     return () => {
-      cancelled = true;
+      alive = false;
       subscription.unsubscribe();
     };
   }, []);
-
-  if (!authReady) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f8fafc" }}>
-        <ActivityIndicator size="large" color="#0f172a" />
-      </View>
-    );
-  }
 
   return (
     <GestureHandlerRootView style={styles.flex1}>

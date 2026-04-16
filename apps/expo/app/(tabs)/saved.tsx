@@ -9,6 +9,7 @@ import {
   Image,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -16,6 +17,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 /** Fixed folder labels for the Library grid. */
 const FOLDER_GRID_LABELS = ["#Economy", "#Politics", "#Geopolitics", "#Tech"] as const;
+
+const FOLDER_TILE_STYLES = [
+  { backgroundColor: "#e2e8f0", borderColor: "#cbd5e1" },
+  { backgroundColor: "#bae6fd", borderColor: "#7dd3fc" },
+  { backgroundColor: "#ddd6fe", borderColor: "#c4b5fd" },
+  { backgroundColor: "#fde68a", borderColor: "#fcd34d" },
+] as const;
 
 interface BookmarkWithArticle {
   article_id: string;
@@ -138,117 +146,102 @@ export default function SavedTab() {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-slate-50" edges={["top"]}>
-        <View className="flex-1 items-center justify-center">
+      <SafeAreaView style={styles.safeArea} edges={["top"]}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#0f172a" />
-          <Text className="mt-3 text-sm text-slate-500">Loading library...</Text>
+          <Text style={styles.loadingText}>Loading library...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50" edges={["top"]}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingBottom: 32 }}
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View className="flex-row items-start justify-between px-4 pt-4 pb-2">
+        <View style={styles.header}>
           <View>
-            <Text className="text-[28px] font-semibold text-slate-900" style={{ fontFamily: "Georgia" }}>
-              Library
-            </Text>
-            <Text className="mt-1 text-sm text-slate-500">
-              Folders · Authors · Recent saves
-            </Text>
+            <Text style={[styles.headerTitle, { fontFamily: "Georgia" }]}>Library</Text>
+            <Text style={styles.headerSubtitle}>Folders · Authors · Recent saves</Text>
           </View>
           <Pressable
             onPress={() => router.push("/")}
             hitSlop={8}
-            className="rounded-lg py-1 px-2 active:opacity-70"
+            style={({ pressed }) => [styles.homeLink, pressed && styles.pressed]}
           >
-            <Text className="text-sm font-medium text-slate-900">Home</Text>
+            <Text style={styles.homeLinkText}>Home</Text>
           </Pressable>
         </View>
 
-        {/* Folder Grid: 4 squares */}
-        <View className="px-4 pt-4">
-          <Text className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Folders
-          </Text>
-          <View className="flex-row flex-wrap gap-3">
+        <View style={styles.sectionPad}>
+          <Text style={styles.sectionLabel}>Folders</Text>
+          <View style={styles.folderGrid}>
             {FOLDER_GRID_LABELS.map((label, i) => {
               const { count } = folderCounts[i] ?? { count: 0 };
-              const colors = ["bg-slate-200", "bg-sky-200", "bg-violet-200", "bg-amber-200"];
-              const borderColors = ["border-slate-300", "border-sky-300", "border-violet-300", "border-amber-300"];
+              const tile = FOLDER_TILE_STYLES[i];
               return (
                 <Pressable
                   key={label}
                   onPress={() => router.push("/library")}
-                  className={`h-[88px] w-[88px] items-center justify-center rounded-xl border-2 ${borderColors[i]} ${colors[i]} active:opacity-80`}
+                  style={({ pressed }) => [
+                    styles.folderTile,
+                    {
+                      backgroundColor: tile.backgroundColor,
+                      borderColor: tile.borderColor,
+                    },
+                    pressed && styles.pressed,
+                  ]}
                 >
-                  <Text className="text-center font-serif text-base font-semibold text-slate-800">
-                    {label}
-                  </Text>
-                  <Text className="mt-1 text-2xl font-bold text-slate-900">
-                    {count}
-                  </Text>
+                  <Text style={[styles.folderLabel, { fontFamily: "Georgia" }]}>{label}</Text>
+                  <Text style={styles.folderCount}>{count}</Text>
                 </Pressable>
               );
             })}
           </View>
         </View>
 
-        {/* Authors I Follow - horizontal scroll */}
-        <View className="mt-6">
-          <Text className="mb-3 px-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Authors I Follow
-          </Text>
+        <View style={styles.authorsBlock}>
+          <Text style={[styles.sectionLabel, styles.sectionLabelPad]}>Authors I Follow</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8, flexDirection: "row", gap: 16 }}
+            contentContainerStyle={styles.authorsScroll}
           >
             {followedAuthors.length === 0 ? (
-              <View className="rounded-2xl border border-dashed border-slate-300 bg-slate-100/50 px-5 py-4">
-                <Text className="text-sm text-slate-500">
-                  Follow authors from article pages
-                </Text>
-                <Pressable
-                  onPress={() => router.push("/discover-authors")}
-                  className="mt-2"
-                >
-                  <Text className="text-sm font-medium text-slate-700 underline">
-                    Discover authors
-                  </Text>
+              <View style={styles.authorsEmpty}>
+                <Text style={styles.mutedText}>Follow authors from article pages</Text>
+                <Pressable onPress={() => router.push("/discover-authors")} style={styles.discoverLinkWrap}>
+                  <Text style={styles.discoverLink}>Discover authors</Text>
                 </Pressable>
               </View>
             ) : (
-              followedAuthors.map((author) => (
+              followedAuthors.map((author, idx) => (
                 <Pressable
                   key={author.id}
                   onPress={() => router.push(`/author/${author.id}`)}
-                  className="items-center active:opacity-80"
+                  style={({ pressed }) => [
+                    styles.authorItem,
+                    idx < followedAuthors.length - 1 && styles.authorItemSpacer,
+                    pressed && styles.pressed,
+                  ]}
                 >
                   {author.image_url ? (
                     <Image
                       source={{ uri: author.image_url }}
-                      className="h-14 w-14 rounded-full bg-slate-200"
+                      style={styles.authorAvatar}
                       accessibilityLabel={`${author.name} avatar`}
                     />
                   ) : (
-                    <View className="h-14 w-14 items-center justify-center rounded-full bg-slate-800">
-                      <Text className="font-serif text-base font-semibold text-slate-100">
+                    <View style={styles.authorAvatarPlaceholder}>
+                      <Text style={[styles.authorMonogram, { fontFamily: "Georgia" }]}>
                         {getMonogram(author.name)}
                       </Text>
                     </View>
                   )}
-                  <Text
-                    className="mt-1.5 max-w-[72px] text-center text-xs font-medium text-slate-700"
-                    numberOfLines={2}
-                  >
+                  <Text style={styles.authorName} numberOfLines={2}>
                     {author.name}
                   </Text>
                 </Pressable>
@@ -257,32 +250,23 @@ export default function SavedTab() {
           </ScrollView>
         </View>
 
-        {/* Recent Saves - last 5 bookmarks */}
-        <View className="mt-6 px-4">
-          <Text className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Recent Saves
-          </Text>
+        <View style={styles.sectionPad}>
+          <Text style={styles.sectionLabel}>Recent Saves</Text>
           {!hasAnyBookmarks ? (
-            <View className="items-center rounded-xl border border-slate-200 bg-white py-10">
+            <View style={styles.emptyCard}>
               <Bookmark size={48} color="#cbd5e1" strokeWidth={1.5} />
-              <Text className="mt-3 font-serif text-lg text-slate-500">
-                No saved editorials yet
-              </Text>
-              <Text className="mt-1 text-center text-sm text-slate-400">
-                Save articles from Home to see them here.
-              </Text>
+              <Text style={[styles.emptyTitle, { fontFamily: "Georgia" }]}>No saved editorials yet</Text>
+              <Text style={styles.emptySubtitle}>Save articles from Home to see them here.</Text>
               <Pressable
                 onPress={() => router.push("/")}
-                className="mt-4 rounded-lg bg-slate-900 px-4 py-2.5 active:opacity-85"
+                style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
               >
-                <Text className="text-sm font-semibold text-white">Go to Home</Text>
+                <Text style={styles.primaryButtonText}>Go to Home</Text>
               </Pressable>
             </View>
           ) : recentSaves.length === 0 ? (
-            <View className="rounded-xl border border-slate-200 bg-white py-8">
-              <Text className="text-center text-sm text-slate-500">
-                No recent saves.
-              </Text>
+            <View style={styles.mutedCard}>
+              <Text style={styles.mutedTextCenter}>No recent saves.</Text>
             </View>
           ) : (
             <View>
@@ -294,13 +278,11 @@ export default function SavedTab() {
                 />
               ))}
               <Pressable
-              onPress={() => router.push("/library")}
-              className="mt-2 rounded-lg border border-slate-200 bg-white py-3 active:opacity-80"
-            >
-              <Text className="text-center text-sm font-medium text-slate-600">
-                View all saved →
-              </Text>
-            </Pressable>
+                onPress={() => router.push("/library")}
+                style={({ pressed }) => [styles.viewAllButton, pressed && styles.pressed]}
+              >
+                <Text style={styles.viewAllText}>View all saved →</Text>
+              </Pressable>
             </View>
           )}
         </View>
@@ -308,3 +290,221 @@ export default function SavedTab() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#f8fafc",
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 32,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "#64748b",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: "600",
+    color: "#0f172a",
+  },
+  headerSubtitle: {
+    marginTop: 4,
+    fontSize: 14,
+    color: "#64748b",
+  },
+  homeLink: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  homeLinkText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#0f172a",
+  },
+  sectionPad: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  sectionLabel: {
+    marginBottom: 12,
+    fontSize: 11,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    color: "#94a3b8",
+  },
+  sectionLabelPad: {
+    paddingHorizontal: 16,
+  },
+  folderGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  folderTile: {
+    width: 88,
+    height: 88,
+    borderRadius: 12,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  folderLabel: {
+    textAlign: "center",
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#1e293b",
+  },
+  folderCount: {
+    marginTop: 4,
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  authorsBlock: {
+    marginTop: 24,
+  },
+  authorsScroll: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  authorsEmpty: {
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: "#cbd5e1",
+    borderRadius: 16,
+    backgroundColor: "rgba(241, 245, 249, 0.8)",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    maxWidth: "100%",
+  },
+  mutedText: {
+    fontSize: 14,
+    color: "#64748b",
+  },
+  discoverLinkWrap: {
+    marginTop: 8,
+  },
+  discoverLink: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#334155",
+    textDecorationLine: "underline",
+  },
+  authorItem: {
+    alignItems: "center",
+    width: 72,
+  },
+  authorItemSpacer: {
+    marginRight: 16,
+  },
+  authorAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#e2e8f0",
+  },
+  authorAvatarPlaceholder: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#1e293b",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  authorMonogram: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#f1f5f9",
+  },
+  authorName: {
+    marginTop: 6,
+    maxWidth: 72,
+    textAlign: "center",
+    fontSize: 11,
+    fontWeight: "500",
+    color: "#334155",
+  },
+  emptyCard: {
+    alignItems: "center",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#fff",
+    paddingVertical: 40,
+    paddingHorizontal: 16,
+  },
+  emptyTitle: {
+    marginTop: 12,
+    fontSize: 18,
+    color: "#64748b",
+  },
+  emptySubtitle: {
+    marginTop: 4,
+    textAlign: "center",
+    fontSize: 14,
+    color: "#94a3b8",
+  },
+  primaryButton: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: "#0f172a",
+  },
+  primaryButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#fff",
+  },
+  mutedCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#fff",
+    paddingVertical: 32,
+  },
+  mutedTextCenter: {
+    textAlign: "center",
+    fontSize: 14,
+    color: "#64748b",
+  },
+  viewAllButton: {
+    marginTop: 8,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#fff",
+  },
+  viewAllText: {
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#475569",
+  },
+  pressed: {
+    opacity: 0.85,
+  },
+});

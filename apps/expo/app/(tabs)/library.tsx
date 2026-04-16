@@ -122,7 +122,7 @@ function NewFolderInput({
   return (
     <View style={styles.newFolderInputWrap}>
       <TextInput
-        ref={inputRef}
+        ref={inputRef as React.RefObject<TextInput>}
         style={styles.newFolderInput}
         placeholder="Folder name"
         placeholderTextColor="#94a3b8"

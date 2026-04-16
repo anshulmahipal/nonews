@@ -85,15 +85,28 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
     });
   }
 
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
+  const existing = await Notifications.getPermissionsAsync();
+  /** Permission payloads may expose `granted`, `status`, or iOS-only fields. */
+  const allows = (perm: Notifications.NotificationPermissionsStatus) => {
+    const p = perm as Notifications.NotificationPermissionsStatus & {
+      granted?: boolean;
+      status?: string;
+    };
+    return (
+      p.granted === true ||
+      p.status === "granted" ||
+      perm.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL
+    );
+  };
 
-  if (existingStatus !== "granted") {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
+  let canNotify = allows(existing);
+
+  if (!canNotify) {
+    const requested = await Notifications.requestPermissionsAsync();
+    canNotify = allows(requested);
   }
 
-  if (finalStatus !== "granted") {
+  if (!canNotify) {
     return null;
   }
 

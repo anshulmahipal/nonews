@@ -1,7 +1,7 @@
 import { supabase } from "../lib/supabase";
 import { router } from "expo-router";
 import * as AppleAuthentication from "expo-apple-authentication";
-import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
+import { isGoogleSignInNativeAvailable } from "../lib/googleSignIn";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function LoginScreen() {
   const [loading, setLoading] = useState<"apple" | "google" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const googleNativeAvailable = isGoogleSignInNativeAvailable();
 
   const handleAppleSignIn = async () => {
     if (Platform.OS !== "ios") return;
@@ -53,37 +54,46 @@ export default function LoginScreen() {
   };
 
   const handleGoogleSignIn = async () => {
+    if (!googleNativeAvailable) {
+      setError("Google sign-in needs a development build (not available in Expo Go).");
+      return;
+    }
     setLoading("google");
     setError(null);
     try {
-      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-      const response = await GoogleSignin.signIn();
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { GoogleSignin, statusCodes } = require("@react-native-google-signin/google-signin");
+      try {
+        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+        const response = await GoogleSignin.signIn();
 
-      if (response.type === "cancelled" || response.type === "noSavedCredentialFound") {
-        return;
-      }
-
-      const idToken = response.data?.idToken;
-      if (!idToken) {
-        throw new Error("Google Sign-In failed – no ID token");
-      }
-
-      const { error: authError } = await supabase.auth.signInWithIdToken({
-        provider: "google",
-        token: idToken,
-      });
-
-      if (authError) throw authError;
-
-      router.replace("/(tabs)");
-    } catch (e: unknown) {
-      if (e && typeof e === "object" && "code" in e) {
-        const code = (e as { code?: string }).code;
-        if (code === statusCodes.SIGN_IN_CANCELLED || code === statusCodes.IN_PROGRESS) {
-          setLoading(null);
+        if (response.type === "cancelled") {
           return;
         }
+
+        const idToken = response.data?.idToken;
+        if (!idToken) {
+          throw new Error("Google Sign-In failed – no ID token");
+        }
+
+        const { error: authError } = await supabase.auth.signInWithIdToken({
+          provider: "google",
+          token: idToken,
+        });
+
+        if (authError) throw authError;
+
+        router.replace("/(tabs)");
+      } catch (e: unknown) {
+        if (e && typeof e === "object" && "code" in e) {
+          const code = (e as { code?: string }).code;
+          if (code === statusCodes.SIGN_IN_CANCELLED || code === statusCodes.IN_PROGRESS) {
+            return;
+          }
+        }
+        throw e;
       }
+    } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Google sign-in failed");
     } finally {
       setLoading(null);
@@ -123,25 +133,33 @@ export default function LoginScreen() {
             </Pressable>
           )}
 
-          <Pressable
-            onPress={handleGoogleSignIn}
-            disabled={!!loading}
-            style={({ pressed }) => [
-              styles.button,
-              styles.googleButton,
-              pressed && !loading && styles.buttonPressed,
-              loading === "google" && styles.buttonLoading,
-            ]}
-          >
-            {loading === "google" ? (
-              <View style={styles.loadingContent}>
-                <ActivityIndicator size="small" color="#f8fafc" />
-                <Text style={[styles.loadingText, styles.loadingTextLight]}>Signing in…</Text>
-              </View>
-            ) : (
-              <Text style={styles.googleButtonText}>Continue with Google</Text>
-            )}
-          </Pressable>
+          {googleNativeAvailable ? (
+            <Pressable
+              onPress={handleGoogleSignIn}
+              disabled={!!loading}
+              style={({ pressed }) => [
+                styles.button,
+                styles.googleButton,
+                pressed && !loading && styles.buttonPressed,
+                loading === "google" && styles.buttonLoading,
+              ]}
+            >
+              {loading === "google" ? (
+                <View style={styles.loadingContent}>
+                  <ActivityIndicator size="small" color="#f8fafc" />
+                  <Text style={[styles.loadingText, styles.loadingTextLight]}>Signing in…</Text>
+                </View>
+              ) : (
+                <Text style={styles.googleButtonText}>Continue with Google</Text>
+              )}
+            </Pressable>
+          ) : (
+            <Text style={styles.hint}>
+              {Platform.OS === "ios"
+                ? "Google sign-in requires a development build (Expo Go only includes Apple here)."
+                : "Google sign-in requires a development build. Use npx expo run:android or an EAS dev client, not Expo Go."}
+            </Text>
+          )}
         </View>
 
         {error && <Text style={styles.error}>{error}</Text>}
@@ -233,5 +251,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#dc2626",
     textAlign: "center",
+  },
+  hint: {
+    fontSize: 14,
+    color: "#64748b",
+    textAlign: "center",
+    lineHeight: 20,
   },
 });

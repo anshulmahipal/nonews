@@ -1,5 +1,7 @@
 import { useBookmarks } from "../../hooks/useBookmarks";
+import { rejectAfter } from "../../lib/raceAsync";
 import { supabase } from "../../lib/supabase";
+import { fetchLatestCompletedEditorials } from "@nonews/shared";
 import { SummaryCard, type ArticleWithSource } from "@nonews/ui";
 import { Coffee, FileText, Search, Users, X } from "lucide-react-native";
 import { useQuery } from "@tanstack/react-query";
@@ -19,12 +21,20 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 /** Article with author_id for filtering by followed authors. */
-type ArticleWithAuthorId = ArticleWithSource & { author_id: string | null };
+type ArticleWithAuthorId = ArticleWithSource & {
+  author_id: string | null;
+  processed_date: string;
+};
 
 type Segment = "all" | "following";
 
-function getTodayDateString(): string {
-  return new Date().toISOString().split("T")[0];
+/** User’s local calendar date (YYYY-MM-DD) — matches typical `processed_date` expectations better than UTC-only. */
+function getLocalDateString(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 function formatDisplayDate(): string {
@@ -140,7 +150,7 @@ function articleMatchesSearch(
 }
 
 export default function HomeTab() {
-  const today = useMemo(() => getTodayDateString(), []);
+  const todayLocal = useMemo(() => getLocalDateString(), []);
   const [segment, setSegment] = useState<Segment>("all");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -149,7 +159,12 @@ export default function HomeTab() {
   const { data: followedAuthorIds = [] } = useQuery({
     queryKey: ["followed-author-ids"],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await Promise.race([
+        supabase.auth.getSession().then(({ data }) => data.session ?? null),
+        new Promise<null>((resolve) => {
+          setTimeout(() => resolve(null), 2_500);
+        }),
+      ]);
       if (!session?.user) return [];
       const { data, error } = await supabase
         .from("follows")
@@ -166,19 +181,25 @@ export default function HomeTab() {
   );
 
   const { data: articles, isLoading: articlesLoading, error } = useQuery({
-    queryKey: ["morning-brief", today],
+    queryKey: ["editorial-feed"],
     queryFn: async () => {
-      const { data, error: fetchError } = await supabase
-        .from("articles")
-        .select("id, title, link, author, author_id, published_at, ai_summary, ai_simplified_summary, ai_stance, sources(name)")
-        .eq("processed_date", today)
-        .eq("status", "completed")
-        .order("published_at", { ascending: false });
+      const fetchArticles = async (): Promise<ArticleWithAuthorId[]> => {
+        const rows = await fetchLatestCompletedEditorials(supabase, { limit: 75 });
+        return (rows ?? []) as ArticleWithAuthorId[];
+      };
 
-      if (fetchError) throw fetchError;
-      return (data ?? []) as ArticleWithAuthorId[];
+      return Promise.race([
+        fetchArticles(),
+        rejectAfter(25_000, "Could not load articles. Check network and EXPO_PUBLIC_SUPABASE_* in .env."),
+      ]);
     },
   });
+
+  /** True when every row is from an older batch (none match today’s local calendar date). */
+  const isShowingRecentFallback = useMemo(() => {
+    if (!articles?.length) return false;
+    return !articles.some((a) => a.processed_date === todayLocal);
+  }, [articles, todayLocal]);
 
   const followingArticles = useMemo(() => {
     if (!articles) return [];
@@ -238,12 +259,14 @@ export default function HomeTab() {
   }
 
   if (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to load articles. Please try again.";
     return (
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
-            Failed to load articles. Please try again.
-          </Text>
+          <Text style={styles.errorText}>{message}</Text>
         </View>
       </SafeAreaView>
     );
@@ -257,6 +280,11 @@ export default function HomeTab() {
             Today's Edition
           </Text>
           <Text style={styles.headerDate}>{formatDisplayDate()}</Text>
+          {isShowingRecentFallback ? (
+            <Text style={styles.fallbackHint}>
+              Showing latest editorials from your archive (nothing dated for today yet).
+            </Text>
+          ) : null}
         </View>
         <View style={styles.headerActions}>
           <Pressable
@@ -382,6 +410,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 14,
     color: "#64748b",
+  },
+  fallbackHint: {
+    marginTop: 6,
+    fontSize: 13,
+    color: "#94a3b8",
   },
   searchBarWrap: {
     flexDirection: "row",

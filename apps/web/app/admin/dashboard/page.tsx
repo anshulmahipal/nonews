@@ -39,6 +39,7 @@ export default function AdminDashboardPage() {
   const queryClient = useQueryClient();
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   const { data: sources, isLoading } = useQuery<SourceRow[]>({
     queryKey: ["admin", "sources"],
@@ -56,15 +57,31 @@ export default function AdminDashboardPage() {
   const syncSource = useCallback(
     async (sourceId: string) => {
       setSyncError(null);
+      setSyncMessage(null);
       setSyncingId(sourceId);
       try {
         const supabase = createSupabaseClient();
-        const { data, error } = await supabase.functions.invoke("daily-ingestor", {
+        const { data: ingestData, error: ingestError } = await supabase.functions.invoke("daily-ingestor", {
           body: { source_id: sourceId },
         });
-        if (error) throw error;
-        if (data?.error) throw new Error(data.error);
+        if (ingestError) throw ingestError;
+        if (ingestData?.error) throw new Error(ingestData.error);
+
+        const processed = Number(ingestData?.processed ?? 0);
+        let message = ingestData?.message ?? "Sync finished.";
+
+        if (processed > 0) {
+          const { data: aiData, error: aiError } = await supabase.functions.invoke("ai-processor");
+          if (aiError) throw aiError;
+          if (aiData?.error) throw new Error(aiData.error);
+          const completed = Number(aiData?.completed ?? 0);
+          const failed = Number(aiData?.failed ?? 0);
+          message = `${message} AI processor completed ${completed} and failed ${failed}.`;
+        }
+
+        setSyncMessage(message);
         await queryClient.invalidateQueries({ queryKey: ["admin", "sources"] });
+        await queryClient.invalidateQueries({ queryKey: ["admin", "health"] });
       } catch (e) {
         setSyncError(e instanceof Error ? e.message : "Sync failed");
       } finally {
@@ -118,6 +135,12 @@ export default function AdminDashboardPage() {
       {syncError && (
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {syncError}
+        </div>
+      )}
+
+      {syncMessage && (
+        <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          {syncMessage}
         </div>
       )}
 

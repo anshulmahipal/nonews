@@ -8,6 +8,10 @@ yarn-error.log*
 build/
 dist/
 lib/
+# Keep apps/web/lib (source utilities), ignore other lib/ (e.g. build output)
+!apps/web/lib/
+!apps/web/lib/*
+.next/
 *.js.map
 
 # Firebase
@@ -39,6 +43,9 @@ Thumbs.db
 
 # Testing
 coverage/
+
+# Turbo
+.turbo/
 
 # Misc
 *.log

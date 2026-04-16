@@ -1,13 +1,9 @@
-import { router } from "expo-router";
-import { useEffect } from "react";
+import { Redirect } from "expo-router";
 
 /**
- * Root index redirects to tabs (or login is handled by root layout).
- * Kept so "/" is a valid route; root _layout redirects after auth check.
+ * `/` resolves here first; send users to the tab shell without imperative navigation
+ * (router.replace in useEffect runs before the root Stack mounts and throws).
  */
 export default function IndexRedirect() {
-  useEffect(() => {
-    router.replace("/(tabs)");
-  }, []);
-  return null;
+  return <Redirect href="/(tabs)" />;
 }

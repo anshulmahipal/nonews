@@ -1,15 +1,19 @@
 "use client";
 
 import { SummaryCard, type ArticleWithSource } from "@nonews/ui";
-import { createSupabaseClient } from "@nonews/shared";
+import { createSupabaseClient, fetchLatestCompletedEditorials } from "@nonews/shared";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useBookmarks } from "../hooks/useBookmarks";
 
-function getTodayDateString(): string {
-  return new Date().toISOString().split("T")[0];
+function getLocalDateString(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 function formatDisplayDate(): string {
@@ -26,7 +30,7 @@ function handleReadFull(url: string) {
 }
 
 export default function HomePage() {
-  const today = useMemo(() => getTodayDateString(), []);
+  const todayLocal = useMemo(() => getLocalDateString(), []);
   const [displayDate, setDisplayDate] = useState<string>("");
   const { isAuthenticated, signOut } = useAuth();
   const { toggleBookmark, isBookmarked, isToggling } = useBookmarks();
@@ -36,20 +40,22 @@ export default function HomePage() {
   }, []);
 
   const { data: articles, isLoading, error } = useQuery({
-    queryKey: ["morning-brief", today],
+    queryKey: ["editorial-feed"],
     queryFn: async () => {
       const supabase = createSupabaseClient();
-      let { data, error: fetchError } = await supabase
-        .from("articles")
-        .select("id, title, link, author, published_at, ai_summary, ai_simplified_summary, ai_stance, sources(name)")
-        .eq("processed_date", today)
-        .eq("status", "completed")
-        .order("published_at", { ascending: false });
-
-      if (fetchError) throw fetchError;
-      return (data ?? []) as ArticleWithSource[];
+      const rows = await fetchLatestCompletedEditorials(supabase, { limit: 75 });
+      return (rows ?? []) as ArticleWithSource[];
     },
   });
+
+  const isArchiveOnly = useMemo(() => {
+    if (!articles?.length) return false;
+    return !articles.some(
+      (a) =>
+        (a as ArticleWithSource & { processed_date?: string }).processed_date ===
+        todayLocal
+    );
+  }, [articles, todayLocal]);
 
   const listEmpty = !articles || articles.length === 0;
 
@@ -89,6 +95,11 @@ export default function HomePage() {
           <p className="mt-1 text-sm text-slate-500" suppressHydrationWarning>
             {displayDate}
           </p>
+          {isArchiveOnly && !listEmpty ? (
+            <p className="mt-1 text-xs text-slate-400">
+              Showing latest editorials from your archive (nothing dated for today yet).
+            </p>
+          ) : null}
         </div>
         {isAuthenticated ? (
           <button

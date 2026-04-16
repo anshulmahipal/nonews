@@ -7,19 +7,16 @@
       "developmentClient": true,
       "distribution": "internal",
       "channel": "development",
-      "node": "20.19.4",
-      "installCommand": "cd \"$(git rev-parse --show-toplevel)\" && npm ci --include=dev"
+      "node": "20.19.4"
     },
     "preview": {
       "distribution": "internal",
       "channel": "preview",
-      "node": "20.19.4",
-      "installCommand": "cd \"$(git rev-parse --show-toplevel)\" && npm ci --include=dev"
+      "node": "20.19.4"
     },
     "production": {
       "channel": "production",
-      "node": "20.19.4",
-      "installCommand": "cd \"$(git rev-parse --show-toplevel)\" && npm ci --include=dev"
+      "node": "20.19.4"
     }
   },
   "submit": {

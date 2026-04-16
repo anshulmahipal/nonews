@@ -13,6 +13,7 @@ jobs:
     params:
       platform: android
       profile: production
+      working_directory: apps/expo
 
   build_ios:
     name: Build iOS
@@ -20,3 +21,4 @@ jobs:
     params:
       platform: ios
       profile: production
+      working_directory: apps/expo

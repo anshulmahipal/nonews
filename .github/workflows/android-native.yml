@@ -1,7 +1,6 @@
 name: Android Native Build
-# Builds the Gradle project at apps/expo/android (assembleDebug / assembleRelease / bundleRelease).
-# By default, runs `expo prebuild --platform android` first so apps/expo/android exists on the runner
-# (that folder is normally gitignored). To skip prebuild, commit apps/expo/android and run workflow_dispatch with skip_expo_prebuild.
+# Produces a signed release AAB (Android App Bundle) from apps/expo/android via ./gradlew bundleRelease.
+# Runs expo prebuild for Android unless you dispatch with skip_expo_prebuild and commit apps/expo/android.
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -21,15 +20,6 @@ on:
       - ".github/workflows/android-native.yml"
   workflow_dispatch:
     inputs:
-      build_profile:
-        description: "Artifact type to build"
-        required: true
-        default: "debug-apk"
-        type: choice
-        options:
-          - debug-apk
-          - release-apk
-          - release-aab
       skip_expo_prebuild:
         description: "Skip expo prebuild — only if apps/expo/android is committed to the repo"
         required: false
@@ -47,7 +37,6 @@ jobs:
     env:
       EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
       EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
-      BUILD_PROFILE: ${{ github.event.inputs.build_profile || 'debug-apk' }}
       ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -118,36 +107,18 @@ jobs:
           }
 
       - name: Decode release keystore
-        if: env.BUILD_PROFILE != 'debug-apk' && env.ANDROID_KEYSTORE_BASE64 != ''
         run: |
           mkdir -p apps/expo/android/keystore
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > apps/expo/android/keystore/release.keystore
 
       - name: Validate release signing secrets
-        if: env.BUILD_PROFILE != 'debug-apk'
         run: |
           test -n "$ANDROID_KEYSTORE_BASE64" || { echo "Missing ANDROID_KEYSTORE_BASE64"; exit 1; }
           test -n "$ANDROID_KEYSTORE_PASSWORD" || { echo "Missing ANDROID_KEYSTORE_PASSWORD"; exit 1; }
           test -n "$ANDROID_KEY_ALIAS" || { echo "Missing ANDROID_KEY_ALIAS"; exit 1; }
           test -n "$ANDROID_KEY_PASSWORD" || { echo "Missing ANDROID_KEY_PASSWORD"; exit 1; }
 
-      - name: Build debug APK
-        if: env.BUILD_PROFILE == 'debug-apk'
-        working-directory: apps/expo/android
-        run: ./gradlew assembleDebug
-
-      - name: Build signed release APK
-        if: env.BUILD_PROFILE == 'release-apk'
-        working-directory: apps/expo/android
-        run: |
-          ./gradlew assembleRelease \
-            -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/apps/expo/android/keystore/release.keystore" \
-            -Pandroid.injected.signing.store.password="$ANDROID_KEYSTORE_PASSWORD" \
-            -Pandroid.injected.signing.key.alias="$ANDROID_KEY_ALIAS" \
-            -Pandroid.injected.signing.key.password="$ANDROID_KEY_PASSWORD"
-
       - name: Build signed release AAB
-        if: env.BUILD_PROFILE == 'release-aab'
         working-directory: apps/expo/android
         run: |
           ./gradlew bundleRelease \
@@ -156,22 +127,7 @@ jobs:
             -Pandroid.injected.signing.key.alias="$ANDROID_KEY_ALIAS" \
             -Pandroid.injected.signing.key.password="$ANDROID_KEY_PASSWORD"
 
-      - name: Upload debug APK
-        if: env.BUILD_PROFILE == 'debug-apk'
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-debug-apk
-          path: apps/expo/android/app/build/outputs/apk/debug/app-debug.apk
-
-      - name: Upload release APK
-        if: env.BUILD_PROFILE == 'release-apk'
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-release-apk
-          path: apps/expo/android/app/build/outputs/apk/release/app-release.apk
-
       - name: Upload release AAB
-        if: env.BUILD_PROFILE == 'release-aab'
         uses: actions/upload-artifact@v4
         with:
           name: android-release-aab

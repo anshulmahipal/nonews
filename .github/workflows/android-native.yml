@@ -8,6 +8,7 @@ env:
 on:
   push:
     branches:
+      - main
       - development
     paths:
       - "apps/expo/**"
@@ -53,6 +54,7 @@ jobs:
         with:
           node-version: 20.19.4
           cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Setup npm
         run: npm install --global npm@10.9.0
@@ -87,6 +89,9 @@ jobs:
 
       - name: Install dependencies
         run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE"
+          test -f package-lock.json || { echo "No package-lock.json at repo root — commit it from: npx npm@10.9.0 install"; exit 1; }
           node --version
           npm --version
           npm ci

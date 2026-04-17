@@ -55,6 +55,22 @@ npm run dev --workspace=@nonews/expo
 npm run dev --workspace=@nonews/web
 ```
 
+Build the mobile app with EAS from the repo root:
+
+```bash
+npm run eas:build:android
+npm run eas:build:ios
+```
+
+Preview/internal distribution builds:
+
+```bash
+npm run eas:build:android:preview
+npm run eas:build:ios:preview
+```
+
+Important: in this monorepo, the Expo app lives in `apps/expo`, and its EAS config is `apps/expo/eas.json`. If you run `eas build` manually, run it from `apps/expo`, not from the repo root.
+
 ## Important Docs
 
 - `docs/PROJECT_CONTEXT.md`

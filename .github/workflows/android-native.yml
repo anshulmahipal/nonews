@@ -1,5 +1,7 @@
 name: Android Native Build
-# This workflow is intentionally committed from time to time to retrigger Android CI on GitHub.
+# Builds the Gradle project at apps/expo/android (assembleDebug / assembleRelease / bundleRelease).
+# By default, runs `expo prebuild --platform android` first so apps/expo/android exists on the runner
+# (that folder is normally gitignored). To skip prebuild, commit apps/expo/android and run workflow_dispatch with skip_expo_prebuild.
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -28,6 +30,11 @@ on:
           - debug-apk
           - release-apk
           - release-aab
+      skip_expo_prebuild:
+        description: "Skip expo prebuild — only if apps/expo/android is committed to the repo"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   android:
@@ -91,13 +98,24 @@ jobs:
         run: |
           set -euo pipefail
           cd "$GITHUB_WORKSPACE"
-          test -f package-lock.json || { echo "No package-lock.json at repo root — commit it from: npx npm@10.9.0 install"; exit 1; }
+          test -f package-lock.json || { echo "No package-lock.json at repo root — run: npx npm@10.9.0 install"; exit 1; }
           node --version
           npm --version
-          npm ci
+          # `npm ci` fails when package-lock.json is even slightly out of sync with workspace package.json files
+          # (common after dependency edits without a fresh lockfile). `npm install` reconciles the tree reliably on CI.
+          npm install --no-audit --no-fund
 
-      - name: Generate native Android project
+      - name: Generate native Android project (apps/expo/android)
+        if: ${{ !((github.event_name == 'workflow_dispatch') && github.event.inputs.skip_expo_prebuild) }}
         run: npm --workspace @nonews/expo run prebuild:android
+
+      - name: Verify committed apps/expo/android
+        if: ${{ (github.event_name == 'workflow_dispatch') && github.event.inputs.skip_expo_prebuild }}
+        run: |
+          test -f apps/expo/android/settings.gradle || {
+            echo "skip_expo_prebuild was set but apps/expo/android is missing. Commit the native project or remove android/ from .gitignore and push."
+            exit 1
+          }
 
       - name: Decode release keystore
         if: env.BUILD_PROFILE != 'debug-apk' && env.ANDROID_KEYSTORE_BASE64 != ''

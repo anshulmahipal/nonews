@@ -34,6 +34,10 @@ jobs:
       EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
       EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
       BUILD_PROFILE: ${{ github.event.inputs.build_profile || 'debug-apk' }}
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,18 +64,18 @@ jobs:
         run: npm --workspace @nonews/expo run prebuild:android
 
       - name: Decode release keystore
-        if: env.BUILD_PROFILE != 'debug-apk' && secrets.ANDROID_KEYSTORE_BASE64 != ''
+        if: env.BUILD_PROFILE != 'debug-apk' && env.ANDROID_KEYSTORE_BASE64 != ''
         run: |
           mkdir -p apps/expo/android/keystore
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > apps/expo/android/keystore/release.keystore
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > apps/expo/android/keystore/release.keystore
 
       - name: Validate release signing secrets
         if: env.BUILD_PROFILE != 'debug-apk'
         run: |
-          test -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" || { echo "Missing ANDROID_KEYSTORE_BASE64"; exit 1; }
-          test -n "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" || { echo "Missing ANDROID_KEYSTORE_PASSWORD"; exit 1; }
-          test -n "${{ secrets.ANDROID_KEY_ALIAS }}" || { echo "Missing ANDROID_KEY_ALIAS"; exit 1; }
-          test -n "${{ secrets.ANDROID_KEY_PASSWORD }}" || { echo "Missing ANDROID_KEY_PASSWORD"; exit 1; }
+          test -n "$ANDROID_KEYSTORE_BASE64" || { echo "Missing ANDROID_KEYSTORE_BASE64"; exit 1; }
+          test -n "$ANDROID_KEYSTORE_PASSWORD" || { echo "Missing ANDROID_KEYSTORE_PASSWORD"; exit 1; }
+          test -n "$ANDROID_KEY_ALIAS" || { echo "Missing ANDROID_KEY_ALIAS"; exit 1; }
+          test -n "$ANDROID_KEY_PASSWORD" || { echo "Missing ANDROID_KEY_PASSWORD"; exit 1; }
 
       - name: Build debug APK
         if: env.BUILD_PROFILE == 'debug-apk'
@@ -84,9 +88,9 @@ jobs:
         run: |
           ./gradlew assembleRelease \
             -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/apps/expo/android/keystore/release.keystore" \
-            -Pandroid.injected.signing.store.password="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
-            -Pandroid.injected.signing.key.alias="${{ secrets.ANDROID_KEY_ALIAS }}" \
-            -Pandroid.injected.signing.key.password="${{ secrets.ANDROID_KEY_PASSWORD }}"
+            -Pandroid.injected.signing.store.password="$ANDROID_KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$ANDROID_KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$ANDROID_KEY_PASSWORD"
 
       - name: Build signed release AAB
         if: env.BUILD_PROFILE == 'release-aab'
@@ -94,9 +98,9 @@ jobs:
         run: |
           ./gradlew bundleRelease \
             -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/apps/expo/android/keystore/release.keystore" \
-            -Pandroid.injected.signing.store.password="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
-            -Pandroid.injected.signing.key.alias="${{ secrets.ANDROID_KEY_ALIAS }}" \
-            -Pandroid.injected.signing.key.password="${{ secrets.ANDROID_KEY_PASSWORD }}"
+            -Pandroid.injected.signing.store.password="$ANDROID_KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$ANDROID_KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$ANDROID_KEY_PASSWORD"
 
       - name: Upload debug APK
         if: env.BUILD_PROFILE == 'debug-apk'

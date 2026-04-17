@@ -40,6 +40,8 @@ Thumbs.db
 # React Native
 .expo/
 .expo-shared/
+*.keystore
+*.jks
 
 # Testing
 coverage/

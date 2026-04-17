@@ -32,6 +32,7 @@ on:
 jobs:
   publish-update:
     runs-on: ubuntu-latest
+    environment: Production
     defaults:
       run:
         shell: bash

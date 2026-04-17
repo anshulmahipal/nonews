@@ -32,6 +32,8 @@ on:
 jobs:
   android:
     runs-on: ubuntu-latest
+    # Required so secrets stored under Settings → Environments → Production are available.
+    environment: Production
     defaults:
       run:
         shell: bash

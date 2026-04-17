@@ -1,7 +1,7 @@
 {
   "name": "@nonews/expo",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
   "main": "expo-router/entry",
   "scripts": {
     "dev": "expo start",

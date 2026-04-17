@@ -55,6 +55,12 @@ npm run dev --workspace=@nonews/expo
 npm run dev --workspace=@nonews/web
 ```
 
+## CI/CD
+
+- Native Android builds can run in GitHub Actions via `.github/workflows/android-native.yml`.
+- OTA updates can be published separately via `.github/workflows/ota-update.yml`.
+- Setup details and required GitHub secrets are documented in `docs/GITHUB_ACTIONS.md`.
+
 Build the mobile app with EAS from the repo root:
 
 ```bash

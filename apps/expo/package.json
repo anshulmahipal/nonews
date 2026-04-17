@@ -9,6 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build": "expo export",
+    "prebuild:android": "expo prebuild --platform android --non-interactive --clean",
     "eas:build:android": "eas build --platform android --profile production",
     "eas:build:ios": "eas build --platform ios --profile production",
     "eas:build:android:preview": "eas build --platform android --profile preview",

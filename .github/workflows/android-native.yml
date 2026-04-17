@@ -1,0 +1,120 @@
+name: Android Native Build
+
+on:
+  push:
+    branches:
+      - main
+      - development
+    paths:
+      - "apps/expo/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".npmrc"
+      - ".github/workflows/android-native.yml"
+  workflow_dispatch:
+    inputs:
+      build_profile:
+        description: "Artifact type to build"
+        required: true
+        default: "debug-apk"
+        type: choice
+        options:
+          - debug-apk
+          - release-apk
+          - release-aab
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+      BUILD_PROFILE: ${{ github.event.inputs.build_profile || 'debug-apk' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.4
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate native Android project
+        run: npm --workspace @nonews/expo run prebuild:android
+
+      - name: Decode release keystore
+        if: env.BUILD_PROFILE != 'debug-apk' && secrets.ANDROID_KEYSTORE_BASE64 != ''
+        run: |
+          mkdir -p apps/expo/android/keystore
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > apps/expo/android/keystore/release.keystore
+
+      - name: Validate release signing secrets
+        if: env.BUILD_PROFILE != 'debug-apk'
+        run: |
+          test -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" || { echo "Missing ANDROID_KEYSTORE_BASE64"; exit 1; }
+          test -n "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" || { echo "Missing ANDROID_KEYSTORE_PASSWORD"; exit 1; }
+          test -n "${{ secrets.ANDROID_KEY_ALIAS }}" || { echo "Missing ANDROID_KEY_ALIAS"; exit 1; }
+          test -n "${{ secrets.ANDROID_KEY_PASSWORD }}" || { echo "Missing ANDROID_KEY_PASSWORD"; exit 1; }
+
+      - name: Build debug APK
+        if: env.BUILD_PROFILE == 'debug-apk'
+        working-directory: apps/expo/android
+        run: ./gradlew assembleDebug
+
+      - name: Build signed release APK
+        if: env.BUILD_PROFILE == 'release-apk'
+        working-directory: apps/expo/android
+        run: |
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/apps/expo/android/keystore/release.keystore" \
+            -Pandroid.injected.signing.store.password="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
+            -Pandroid.injected.signing.key.alias="${{ secrets.ANDROID_KEY_ALIAS }}" \
+            -Pandroid.injected.signing.key.password="${{ secrets.ANDROID_KEY_PASSWORD }}"
+
+      - name: Build signed release AAB
+        if: env.BUILD_PROFILE == 'release-aab'
+        working-directory: apps/expo/android
+        run: |
+          ./gradlew bundleRelease \
+            -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/apps/expo/android/keystore/release.keystore" \
+            -Pandroid.injected.signing.store.password="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
+            -Pandroid.injected.signing.key.alias="${{ secrets.ANDROID_KEY_ALIAS }}" \
+            -Pandroid.injected.signing.key.password="${{ secrets.ANDROID_KEY_PASSWORD }}"
+
+      - name: Upload debug APK
+        if: env.BUILD_PROFILE == 'debug-apk'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-apk
+          path: apps/expo/android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload release APK
+        if: env.BUILD_PROFILE == 'release-apk'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-apk
+          path: apps/expo/android/app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload release AAB
+        if: env.BUILD_PROFILE == 'release-aab'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-aab
+          path: apps/expo/android/app/build/outputs/bundle/release/app-release.aab

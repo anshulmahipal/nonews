@@ -1,4 +1,5 @@
 name: Android Native Build
+# This workflow is intentionally committed from time to time to retrigger Android CI on GitHub.
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"

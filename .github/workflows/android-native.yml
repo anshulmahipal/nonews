@@ -2,6 +2,7 @@ name: Android Native Build
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
 on:
   push:
@@ -58,7 +59,24 @@ jobs:
           java-version: "17"
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        run: |
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+
+          if [ ! -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+            curl -fsSL "https://dl.google.com/android/repository/commandlinetools-linux-12266719_latest.zip" -o /tmp/android-cmdline-tools.zip
+            rm -rf "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+            unzip -q /tmp/android-cmdline-tools.zip -d /tmp/android-cmdline-tools
+            mv /tmp/android-cmdline-tools/cmdline-tools "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+          fi
+
+          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          echo "$ANDROID_SDK_ROOT/platform-tools" >> "$GITHUB_PATH"
+
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
 
       - name: Install dependencies
         run: npm ci

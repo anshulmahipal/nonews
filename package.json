@@ -22,8 +22,7 @@
     "type-check": "turbo type-check",
     "format": "prettier --write \"apps/**/*.{js,jsx,ts,tsx,json,css,md}\" \"packages/**/*.{js,ts,json}\"",
     "db:push": "npx supabase db push",
-    "scrape-authors": "ts-node scripts/scrape-indian-express-authors.ts",
-    "postinstall": "npm install lightningcss-darwin-x64@1.31.1 --no-save --ignore-scripts 2>/dev/null || true"
+    "scrape-authors": "ts-node scripts/scrape-indian-express-authors.ts"
   },
   "devDependencies": {
     "expo-router": "~6.0.23",
@@ -44,9 +43,6 @@
   "packageManager": "npm@10.9.0",
   "engines": {
     "node": ">=20.19.0"
-  },
-  "optionalDependencies": {
-    "lightningcss-darwin-x64": "^1.31.1"
   },
   "overrides": {
     "@types/react": "~19.1.10",

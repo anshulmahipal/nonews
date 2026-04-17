@@ -38,7 +38,7 @@ Metro is configured in `apps/expo/metro.config.js` to:
 1. **`watchFolders: [monorepoRoot]`** – Watch the whole monorepo so changes in `packages/shared` are picked up.
 2. **`resolver.nodeModulesPaths`** – Resolve modules from the app’s `node_modules` then the root `node_modules` (workspace hoisting).
 
-`@nonews/shared` is resolved via the workspace link to `packages/shared`; its `main` points to `dist/index.js`, so run `npm run build` (or `turbo build`) once so `packages/shared` is compiled. When you run `npm run dev`, Turbo runs `build` for `@nonews/shared` before starting the Expo dev server.
+`@nonews/shared` is resolved via the workspace link to `packages/shared` source, and both apps also use TypeScript path aliases to the same package. `npm run build` (or `turbo build`) still compiles `packages/shared` for consistency, but the mobile/web apps no longer depend on a checked-in `dist` folder being present before the workspace can resolve.
 
 ## Env for Supabase
 

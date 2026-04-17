@@ -8,9 +8,11 @@ yarn-error.log*
 build/
 dist/
 lib/
-# Keep apps/web/lib (source utilities), ignore other lib/ (e.g. build output)
+# Keep apps/web/lib and apps/expo/lib (app source), ignore other lib/ (e.g. build output)
 !apps/web/lib/
 !apps/web/lib/*
+!apps/expo/lib/
+!apps/expo/lib/**
 .next/
 *.js.map
 

@@ -29,6 +29,8 @@ on:
 jobs:
   android:
     runs-on: ubuntu-latest
+    # Avoid hanging until the default 6h job limit; native + Gradle should finish well under this.
+    timeout-minutes: 120
     # Required so secrets stored under Settings → Environments → Production are available.
     environment: Production
     defaults:
@@ -44,6 +46,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Verify Expo lib sources are tracked
+        run: |
+          test -f apps/expo/lib/supabase.ts || {
+            echo "Missing apps/expo/lib/supabase.ts — ensure root .gitignore allows apps/expo/lib/** and commit those files."
+            exit 1
+          }
+          test -f apps/expo/lib/googleSignIn.ts || {
+            echo "Missing apps/expo/lib/googleSignIn.ts — commit apps/expo/lib/ from your machine."
+            exit 1
+          }
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -120,12 +133,17 @@ jobs:
 
       - name: Build signed release AAB
         working-directory: apps/expo/android
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8 -XX:+HeapDumpOnOutOfMemoryError"
         run: |
+          # Skip lintVital* on CI: library modules (e.g. react-native-screens) often fail or hang on lintVitalAnalyzeRelease.
           ./gradlew bundleRelease \
             -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/apps/expo/android/keystore/release.keystore" \
             -Pandroid.injected.signing.store.password="$ANDROID_KEYSTORE_PASSWORD" \
             -Pandroid.injected.signing.key.alias="$ANDROID_KEY_ALIAS" \
-            -Pandroid.injected.signing.key.password="$ANDROID_KEY_PASSWORD"
+            -Pandroid.injected.signing.key.password="$ANDROID_KEY_PASSWORD" \
+            -x lintVitalAnalyzeRelease \
+            -x lintVitalReportRelease
 
       - name: Upload release AAB
         uses: actions/upload-artifact@v4

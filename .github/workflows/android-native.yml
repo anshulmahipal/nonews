@@ -136,12 +136,14 @@ jobs:
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8 -XX:+HeapDumpOnOutOfMemoryError"
         run: |
-          # Skip lintVital* on CI: library modules (e.g. react-native-screens) often fail or hang on lintVitalAnalyzeRelease.
+          # Skip entire lint-vital pipeline on CI (library analyze/report often fail or hang). You must also skip
+          # :app:lintVitalRelease — excluding only analyze/report leaves that task running without their outputs.
           ./gradlew bundleRelease \
             -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/apps/expo/android/keystore/release.keystore" \
             -Pandroid.injected.signing.store.password="$ANDROID_KEYSTORE_PASSWORD" \
             -Pandroid.injected.signing.key.alias="$ANDROID_KEY_ALIAS" \
             -Pandroid.injected.signing.key.password="$ANDROID_KEY_PASSWORD" \
+            -x lintVitalRelease \
             -x lintVitalAnalyzeRelease \
             -x lintVitalReportRelease
 

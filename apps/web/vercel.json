@@ -1,0 +1,5 @@
+{
+  "installCommand": "cd ../.. && npm install",
+  "buildCommand": "cd ../.. && npx turbo build --filter=@nonews/web",
+  "crons": [{ "path": "/api/cron/morning-edition", "schedule": "30 23 * * *" }]
+}

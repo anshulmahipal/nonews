@@ -1,22 +1,5 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/robots.txt/route": "app/robots.txt/route.js",
-  "/sitemap.xml/route": "app/sitemap.xml/route.js",
-  "/api/cron/morning-edition/route": "app/api/cron/morning-edition/route.js",
-  "/editorials/[slug]/opengraph-image/route": "app/editorials/[slug]/opengraph-image/route.js",
-  "/icon.png/route": "app/icon.png/route.js",
-  "/following/page": "app/following/page.js",
-  "/auth/callback/page": "app/auth/callback/page.js",
-  "/page": "app/page.js",
-  "/login/page": "app/login/page.js",
-  "/profile/page": "app/profile/page.js",
-  "/editorials/page": "app/editorials/page.js",
-  "/editorials/[slug]/page": "app/editorials/[slug]/page.js",
-  "/library/page": "app/library/page.js",
-  "/topic/[slug]/page": "app/topic/[slug]/page.js",
-  "/author/[slug]/page": "app/author/[slug]/page.js",
   "/about/page": "app/about/page.js",
-  "/admin/dashboard/page": "app/admin/dashboard/page.js",
-  "/admin/forbidden/page": "app/admin/forbidden/page.js",
-  "/admin/health/page": "app/admin/health/page.js"
+  "/page": "app/page.js",
+  "/privacy/page": "app/privacy/page.js"
 }

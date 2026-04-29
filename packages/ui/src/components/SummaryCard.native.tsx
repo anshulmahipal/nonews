@@ -1,29 +1,14 @@
 import * as Haptics from "expo-haptics";
 import type { ArticleWithSource } from "../types";
-import { Bookmark, ExternalLink, Share2, Sparkles } from "lucide-react-native";
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Bookmark, ExternalLink, Share2 } from "lucide-react-native";
+import { useEffect, useRef } from "react";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
-  Extrapolate,
-  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
   withTiming,
 } from "react-native-reanimated";
-import { BlurView } from "expo-blur";
-import {
-  BottomSheetBackdropProps,
-  BottomSheetModal,
-  BottomSheetScrollView,
-} from "@gorhom/bottom-sheet";
 import { formatPublishedAt } from "../utils/formatPublishedAt";
 import { getStanceStylesNative } from "../utils/getStanceStyles";
 
@@ -36,22 +21,6 @@ function getDomain(link: string): string {
   }
 }
 
-/** Blurred backdrop for the simplification bottom sheet so the rest of the app is blurred. */
-function BlurBackdrop({ style, animatedIndex }: BottomSheetBackdropProps) {
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(animatedIndex.value, [-1, 0], [0, 1], Extrapolate.CLAMP),
-  }));
-  return (
-    <Animated.View style={[StyleSheet.absoluteFill, style, animatedStyle]} pointerEvents="auto">
-      <BlurView
-        intensity={80}
-        tint="dark"
-        style={StyleSheet.absoluteFill}
-      />
-    </Animated.View>
-  );
-}
-
 interface SummaryCardProps {
   item: ArticleWithSource;
   onReadFull: (url: string) => void;
@@ -59,8 +28,6 @@ interface SummaryCardProps {
   isBookmarked?: boolean;
   /** Called when user taps bookmark. Omit to hide bookmark button. */
   onToggleBookmark?: () => void;
-  /** Fetches simplified "explain like I'm 5" summary. If provided, shows Explain button. */
-  onExplainRequested?: (articleId: string) => Promise<string | null>;
   /** Called when user taps Share. If provided, shows Share button. */
   onShare?: () => void;
 }
@@ -122,14 +89,8 @@ export function SummaryCard({
   onReadFull,
   isBookmarked,
   onToggleBookmark,
-  onExplainRequested,
   onShare,
 }: SummaryCardProps) {
-  const [localSimplified, setLocalSimplified] = useState<string | null>(null);
-  const [explainLoading, setExplainLoading] = useState(false);
-  const [explainError, setExplainError] = useState<string | null>(null);
-  const simplifySheetRef = useRef<BottomSheetModal>(null);
-
   const sourceName = item.sources?.name ?? "Unknown Source";
   const sourceDomain = getDomain(item.link);
   const faviconUrl = sourceDomain
@@ -140,41 +101,10 @@ export function SummaryCard({
   const publishedLabel = item.published_at
     ? formatPublishedAt(item.published_at)
     : null;
-  const showExplain = onExplainRequested != null;
-  const simplifiedText = item.ai_simplified_summary ?? localSimplified;
 
   const handleReadFull = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onReadFull(item.link);
-  };
-
-  const renderBlurBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => <BlurBackdrop {...props} />,
-    []
-  );
-
-  const handleExplain = async () => {
-    if (!onExplainRequested || explainLoading) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setExplainError(null);
-    if (simplifiedText) {
-      simplifySheetRef.current?.present();
-      return;
-    }
-    setExplainLoading(true);
-    try {
-      const result = await onExplainRequested(item.id);
-      if (result) {
-        setLocalSimplified(result);
-        setTimeout(() => simplifySheetRef.current?.present(), 100);
-      } else {
-        setExplainError("Could not simplify.");
-      }
-    } catch {
-      setExplainError("Something went wrong.");
-    } finally {
-      setExplainLoading(false);
-    }
   };
 
   const showBookmark = onToggleBookmark != null;
@@ -195,29 +125,6 @@ export function SummaryCard({
       <Text style={[styles.summaryText, { fontFamily: "Georgia" }]}>
         {summaryText}
       </Text>
-      {showExplain && (
-        <>
-          <Pressable
-            onPress={handleExplain}
-            disabled={explainLoading}
-            style={({ pressed }) => [
-              styles.explainButton,
-              pressed && styles.explainButtonPressed,
-              explainLoading && styles.explainButtonDisabled,
-            ]}
-          >
-            {explainLoading ? (
-              <ActivityIndicator size="small" color="#475569" />
-            ) : (
-              <Sparkles size={16} color="#475569" />
-            )}
-            <Text style={styles.explainButtonText}>Explain like I&apos;m 5</Text>
-          </Pressable>
-          {explainError ? (
-            <Text style={styles.explainError}>{explainError}</Text>
-          ) : null}
-        </>
-      )}
       <View style={styles.cardFooter}>
         <View style={styles.footerRow}>
           {faviconUrl ? (
@@ -261,18 +168,6 @@ export function SummaryCard({
           </Pressable>
         )}
       </View>
-      {showExplain && (
-        <BottomSheetModal
-          ref={simplifySheetRef}
-          snapPoints={["50%", "90%"]}
-          backdropComponent={renderBlurBackdrop}
-        >
-          <BottomSheetScrollView contentContainerStyle={styles.sheetContent}>
-            <Text style={styles.simplifiedLabel}>Simple version</Text>
-            <Text style={styles.simplifiedText}>{simplifiedText ?? ""}</Text>
-          </BottomSheetScrollView>
-        </BottomSheetModal>
-      )}
     </View>
   );
 }
@@ -377,49 +272,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     color: "#475569",
-  },
-  explainButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    alignSelf: "flex-start",
-    marginBottom: 12,
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: "#cbd5e1",
-    backgroundColor: "#f8fafc",
-  },
-  explainButtonPressed: { opacity: 0.8 },
-  explainButtonDisabled: { opacity: 0.6 },
-  explainButtonText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#475569",
-  },
-  sheetContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 32,
-  },
-  simplifiedLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    color: "#92400e",
-    marginBottom: 6,
-  },
-  simplifiedText: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#78350f",
-    fontFamily: "Georgia",
-  },
-  explainError: {
-    fontSize: 13,
-    color: "#dc2626",
-    marginBottom: 12,
   },
 });

@@ -139,13 +139,6 @@ export default function ArticleScreen() {
             const message = [article.title, article.ai_summary ?? "", article.link].filter(Boolean).join("\n\n") || article.link;
             Share.share({ title: article.title, message, url: article.link });
           }}
-          onExplainRequested={async (articleId) => {
-            const { data, error } = await supabase.functions.invoke("simplify-summary", {
-              body: { articleId },
-            });
-            if (error) return null;
-            return (data?.simplified as string) ?? null;
-          }}
         />
       </ScrollView>
     </SafeAreaView>

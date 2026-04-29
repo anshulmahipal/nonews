@@ -309,13 +309,6 @@ export default function LibraryTab() {
           const message = [item.title, item.ai_summary ?? "", item.link].filter(Boolean).join("\n\n") || item.link;
           Share.share({ title: item.title, message, url: item.link });
         }}
-        onExplainRequested={async (articleId) => {
-          const { data, error } = await supabase.functions.invoke("simplify-summary", {
-            body: { articleId },
-          });
-          if (error) return null;
-          return (data?.simplified as string) ?? null;
-        }}
       />
     ),
     [handleReadFull, isBookmarked, toggleBookmark]

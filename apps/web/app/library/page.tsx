@@ -133,14 +133,6 @@ export default function LibraryPage() {
                   navigator.clipboard?.writeText(text);
                 }
               }}
-              onExplainRequested={async (articleId) => {
-                const supabase = createSupabaseClient();
-                const { data, error } = await supabase.functions.invoke("simplify-summary", {
-                  body: { articleId },
-                });
-                if (error) return null;
-                return (data?.simplified as string) ?? null;
-              }}
             />
           ))}
         </div>

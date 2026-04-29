@@ -1,8 +1,7 @@
 "use client";
 
 import type { ArticleWithSource } from "../types";
-import { Bookmark, ExternalLink, Share2, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { Bookmark, ExternalLink, Share2 } from "lucide-react";
 import { getStanceStylesWeb } from "../utils/getStanceStyles";
 import { formatPublishedAt } from "../utils/formatPublishedAt";
 
@@ -24,8 +23,6 @@ interface SummaryCardProps {
   onToggleBookmark?: () => void;
   /** Disable bookmark button (e.g. while toggling). */
   isBookmarkDisabled?: boolean;
-  /** Fetches simplified "explain like I'm 5" summary. If provided, shows Explain button. */
-  onExplainRequested?: (articleId: string) => Promise<string | null>;
   /** Called when user clicks Share. If provided, shows Share button. */
   onShare?: () => void;
 }
@@ -48,13 +45,8 @@ export function SummaryCard({
   isBookmarked,
   onToggleBookmark,
   isBookmarkDisabled = false,
-  onExplainRequested,
   onShare,
 }: SummaryCardProps) {
-  const [localSimplified, setLocalSimplified] = useState<string | null>(null);
-  const [explainLoading, setExplainLoading] = useState(false);
-  const [explainError, setExplainError] = useState<string | null>(null);
-
   const sourceName = item.sources?.name ?? "Unknown Source";
   const sourceDomain = getDomain(item.link);
   const faviconUrl = sourceDomain
@@ -66,23 +58,6 @@ export function SummaryCard({
     ? formatPublishedAt(item.published_at)
     : null;
   const showBookmark = onToggleBookmark != null;
-  const showExplain = onExplainRequested != null;
-  const simplifiedText = item.ai_simplified_summary ?? localSimplified;
-
-  const handleExplain = async () => {
-    if (!onExplainRequested || explainLoading) return;
-    setExplainError(null);
-    setExplainLoading(true);
-    try {
-      const result = await onExplainRequested(item.id);
-      if (result) setLocalSimplified(result);
-      else setExplainError("Could not simplify.");
-    } catch {
-      setExplainError("Something went wrong.");
-    } finally {
-      setExplainLoading(false);
-    }
-  };
 
   const summaryText = item.ai_summary ?? "No summary available.";
 
@@ -126,39 +101,6 @@ export function SummaryCard({
           {summaryText}
         </p>
       </div>
-      {showExplain && (
-        <>
-          <button
-            type="button"
-            onClick={handleExplain}
-            disabled={explainLoading}
-            className="mb-3 inline-flex items-center gap-2 self-start rounded-lg border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition-opacity hover:bg-slate-100 disabled:opacity-60"
-          >
-            {explainLoading ? (
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
-            ) : (
-              <Sparkles size={16} />
-            )}
-            Explain like I&apos;m 5
-          </button>
-          {simplifiedText && (
-            <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50/80 p-3">
-              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-amber-800">
-                Simple version
-              </p>
-              <p
-                className="whitespace-pre-line text-sm leading-relaxed text-amber-900"
-                style={{ fontFamily: "Georgia, serif" }}
-              >
-                {simplifiedText}
-              </p>
-            </div>
-          )}
-          {explainError && (
-            <p className="mb-3 text-sm text-red-600">{explainError}</p>
-          )}
-        </>
-      )}
       <div className="mb-3 flex items-center gap-2 border-t border-slate-200 pt-3">
         {faviconUrl && (
           <img

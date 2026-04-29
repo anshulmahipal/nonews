@@ -2,7 +2,7 @@ import { supabase } from "../lib/supabase";
 import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Mail } from "lucide-react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -20,11 +20,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const SUPPORT_EMAIL = "support@editorialquickread.com";
 
+const emailFormatOk = (value: string) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+
+type FormStatus = "idle" | "sending" | "success" | "error";
+
 export default function ContactUsScreen() {
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [formStatus, setFormStatus] = useState<FormStatus>("idle");
+  const [errorText, setErrorText] = useState<string | null>(null);
+  const submitting = formStatus === "sending";
 
   const { data: session } = useQuery({
     queryKey: ["session"],
@@ -34,8 +42,18 @@ export default function ContactUsScreen() {
     },
   });
 
+  const isLoggedIn = Boolean(session?.user);
+  const accountEmail = session?.user?.email?.trim() ?? "";
+
+  useEffect(() => {
+    if (accountEmail) {
+      setEmail((prev) => (prev.trim() ? prev : accountEmail));
+    }
+  }, [accountEmail]);
+
   const handleSubmit = async () => {
     const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
     const trimmedSubject = subject.trim();
     const trimmedMessage = message.trim();
 
@@ -43,6 +61,32 @@ export default function ContactUsScreen() {
       Alert.alert("Missing field", "Please enter your name.");
       return;
     }
+
+    const replyEmail = (trimmedEmail || accountEmail).trim();
+    if (!isLoggedIn) {
+      if (!trimmedEmail) {
+        Alert.alert(
+          "Email required",
+          "We need your email to reply, or you can sign in to use your account email.",
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Sign in", onPress: () => router.push("/login") },
+          ],
+        );
+        return;
+      }
+      if (!emailFormatOk(trimmedEmail)) {
+        setErrorText("Please enter a valid email address.");
+        return;
+      }
+    } else if (replyEmail && !emailFormatOk(replyEmail)) {
+      setErrorText("Please enter a valid email address.");
+      return;
+    } else if (!replyEmail) {
+      setErrorText("Please add an email so we can reply.");
+      return;
+    }
+
     if (!trimmedSubject) {
       Alert.alert("Missing field", "Please enter a subject.");
       return;
@@ -52,10 +96,12 @@ export default function ContactUsScreen() {
       return;
     }
 
-    setSubmitting(true);
+    setErrorText(null);
+    setFormStatus("sending");
     try {
       const { error } = await supabase.from("feedback").insert({
         name: trimmedName,
+        email: replyEmail || null,
         subject: trimmedSubject,
         message: trimmedMessage,
         user_id: session?.user?.id ?? null,
@@ -63,17 +109,23 @@ export default function ContactUsScreen() {
 
       if (error) throw error;
 
-      Alert.alert("Message sent", "Thanks for getting in touch. We'll respond as soon as we can.", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
       setName("");
+      setEmail(accountEmail);
       setSubject("");
       setMessage("");
+      setFormStatus("success");
+      if (Platform.OS !== "web") {
+        Alert.alert("Message sent", "Thanks for getting in touch. We'll respond as soon as we can.");
+      }
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Something went wrong. Please try again.";
-      Alert.alert("Error", msg);
-    } finally {
-      setSubmitting(false);
+      const msg =
+        e && typeof e === "object" && "message" in e && typeof (e as { message: unknown }).message === "string"
+          ? (e as { message: string }).message
+          : e instanceof Error
+            ? e.message
+            : "Something went wrong. Please try again.";
+      setErrorText(msg);
+      setFormStatus("error");
     }
   };
 
@@ -107,6 +159,36 @@ export default function ContactUsScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {formStatus === "success" ? (
+            <View
+              style={styles.successCard}
+              accessibilityRole="text"
+              accessibilityLabel="Message sent. Thank you."
+            >
+              <Text style={styles.successTitle}>Thank you</Text>
+              <Text style={styles.successBody}>
+                We received your message and will get back to you as soon as we can.
+              </Text>
+              <Pressable
+                onPress={() => {
+                  setFormStatus("idle");
+                  setErrorText(null);
+                  setEmail(accountEmail);
+                }}
+                style={({ pressed }) => [styles.secondaryButton, pressed && styles.submitPressed]}
+              >
+                <Text style={styles.secondaryButtonText}>Send another message</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => router.back()}
+                style={({ pressed }) => [styles.textLink, pressed && { opacity: 0.7 }]}
+              >
+                <Text style={styles.textLinkText}>Back</Text>
+              </Pressable>
+            </View>
+          ) : null}
+
+          {formStatus === "success" ? null : (
           <View style={styles.formCard}>
             <Text style={styles.label}>Name</Text>
             <TextInput
@@ -116,6 +198,29 @@ export default function ContactUsScreen() {
               placeholder="Your name"
               placeholderTextColor="#94a3b8"
               autoCapitalize="words"
+              editable={!submitting}
+            />
+            <Text style={[styles.label, styles.labelTop]}>
+              Email{isLoggedIn ? "" : " (required)"}
+            </Text>
+            {isLoggedIn && accountEmail ? (
+              <Text style={styles.helperText}>From your account — you can change it for this message.</Text>
+            ) : !isLoggedIn ? (
+              <Text style={styles.helperText}>
+                We need an email to reply, or use Sign in on your profile to use your account.
+              </Text>
+            ) : null}
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="you@example.com"
+              placeholderTextColor="#94a3b8"
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              textContentType="emailAddress"
+              autoComplete="email"
               editable={!submitting}
             />
             <Text style={[styles.label, styles.labelTop]}>Subject</Text>
@@ -139,6 +244,11 @@ export default function ContactUsScreen() {
               textAlignVertical="top"
               editable={!submitting}
             />
+            {errorText ? (
+              <Text style={styles.errorText} accessibilityRole="alert">
+                {errorText}
+              </Text>
+            ) : null}
             <Pressable
               onPress={handleSubmit}
               disabled={submitting}
@@ -155,7 +265,9 @@ export default function ContactUsScreen() {
               )}
             </Pressable>
           </View>
+          )}
 
+          {formStatus === "success" ? null : (
           <View style={styles.quickSection}>
             <Text style={styles.quickTitle}>Quick Actions</Text>
             <Pressable
@@ -166,6 +278,7 @@ export default function ContactUsScreen() {
               <Text style={styles.quickLabel}>Email Support</Text>
             </Pressable>
           </View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -223,6 +336,12 @@ const styles = StyleSheet.create({
   },
   labelTop: {
     marginTop: 16,
+  },
+  helperText: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: "#64748b",
+    marginBottom: 8,
   },
   input: {
     fontSize: 16,
@@ -287,5 +406,54 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     color: "#0f172a",
+  },
+  successCard: {
+    backgroundColor: "#ecfdf5",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#a7f3d0",
+    padding: 24,
+    marginBottom: 24,
+  },
+  successTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#064e3b",
+    textAlign: "center",
+  },
+  successBody: {
+    marginTop: 8,
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#047857",
+    textAlign: "center",
+  },
+  secondaryButton: {
+    marginTop: 20,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#a7f3d0",
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  secondaryButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#065f46",
+  },
+  textLink: {
+    marginTop: 16,
+    alignItems: "center",
+  },
+  textLinkText: {
+    fontSize: 15,
+    color: "#047857",
+    fontWeight: "500",
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "#b91c1c",
   },
 });

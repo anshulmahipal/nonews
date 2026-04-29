@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy",
+  title: "Privacy Policy",
   description:
-    "How NoNews collects, uses, and protects your information. AI summarization, Supabase auth, and your choices. nonews.in",
+    "Privacy Policy for NoNews (nonews.in): how we handle personal data under India’s DPDP Act, your rights, and how to contact us.",
 };
 
 /**
- * Privacy policy copy for the NoNews web app (editorial summaries, Supabase, Gemini).
+ * Privacy Policy — DPDP-aligned; mirrors app commitments; web includes contact form handling.
+ * Not a substitute for legal advice; a qualified lawyer should review before reliance.
  */
 export default function PrivacyPage() {
   return (
@@ -20,246 +21,223 @@ export default function PrivacyPage() {
         >
           Privacy Policy
         </h1>
-        <p
-          className="mt-3 text-lg leading-relaxed text-slate-600"
-          style={{ fontFamily: "Georgia, serif" }}
-        >
-          We built NoNews to respect your attention and your data. This page explains what we
-          collect, why we collect it, and how you can exercise your choices.
+        <p className="mt-3 text-sm text-slate-500" style={{ fontFamily: "Georgia, serif" }}>
+          Last updated: April 2026
         </p>
         <p
-          className="mt-4 text-sm text-slate-500"
+          className="mt-4 text-lg leading-relaxed text-slate-600"
           style={{ fontFamily: "Georgia, serif" }}
         >
-          Last updated: April 2026
+          NoNews (“we”, “us”) operates nonews.in, our mobile apps, and related services (together, the
+          “Service”). We act as a{" "}
+          <strong className="font-semibold text-slate-800">Data Fiduciary</strong> under the Digital Personal
+          Data Protection Act, 2023 (DPDP Act), India. This Privacy Policy explains how we collect, use,
+          store, and share personal data. By using the Service, you (“Data Principal”) agree to the practices
+          described here. If you do not agree, please do not use the Service.
         </p>
       </header>
 
-      <section className="mb-10">
-        <h2
-          className="mb-3 text-xl font-semibold text-slate-900"
-          style={{ fontFamily: "Georgia, serif" }}
-        >
-          Who we are
-        </h2>
-        <p className="leading-relaxed text-slate-600" style={{ fontFamily: "Georgia, serif" }}>
-          <strong className="font-semibold text-slate-800">NoNews</strong> (&quot;we,&quot; &quot;us&quot;)
-          publishes concise summaries of editorials at{" "}
-          <span className="whitespace-nowrap">nonews.in</span> and related services. We summarize
-          third-party articles to help you stay informed; we do not replace the original
-          publications. For how we use AI, see also our{" "}
-          <Link href="/about#ai-ethics" className="font-medium text-slate-800 underline decoration-slate-300 underline-offset-2 hover:decoration-slate-600">
-            AI &amp; Ethics
-          </Link>{" "}
-          section on the About page.
+      <div className="space-y-10 text-slate-600 leading-relaxed" style={{ fontFamily: "Georgia, serif" }}>
+        <section aria-labelledby="p-consent">
+          <h2 id="p-consent" className="mb-3 text-xl font-semibold text-slate-900">
+            1. Consent and lawful processing
+          </h2>
+          <p className="mb-3">
+            We process personal data on the basis of your{" "}
+            <strong className="font-semibold text-slate-800">consent</strong> where the DPDP Act requires it,
+            or on another lawful ground where applicable. We do not collect personal data for undisclosed
+            purposes.
+          </p>
+          <p className="mb-3">
+            <strong className="font-semibold text-slate-800">Sign-in (social authentication):</strong> When you
+            create or access an account via a provider such as Google or Apple, you authorise us to receive
+            your <strong className="font-semibold text-slate-800">email address</strong> and{" "}
+            <strong className="font-semibold text-slate-800">name</strong> from that provider. We use this
+            information only to operate your account and personalise the Service (for example, saved items and
+            preferences). We do not ask those providers for data beyond what you approve through the login
+            flow.
+          </p>
+          <p className="mb-3">
+            <strong className="font-semibold text-slate-800">Contact form (website):</strong> If you use the{" "}
+            <Link href="/contact" className="text-slate-900 underline underline-offset-2 hover:text-slate-700">
+              contact form
+            </Link>
+            , we collect the details you enter—typically your name, email address, subject line, and
+            message—to read and respond to your enquiry. We do not use this channel for marketing lists unless
+            we ask separately and you agree.
+          </p>
+          <p className="mb-3">
+            <strong className="font-semibold text-slate-800">Push notifications:</strong> Where the Service
+            offers push notifications (for example, a daily brief), we use a device token only if you opt in.
+            You may withdraw that consent through device settings or in-app controls.
+          </p>
+          <p>
+            You may{" "}
+            <strong className="font-semibold text-slate-800">withdraw consent</strong> at any time. Withdrawal
+            does not affect the lawfulness of processing that occurred before withdrawal. See Section 4 for
+            erasure and account deletion.
+          </p>
+        </section>
+
+        <section aria-labelledby="p-purpose">
+          <h2 id="p-purpose" className="mb-3 text-xl font-semibold text-slate-900">
+            2. Purposes of processing
+          </h2>
+          <p className="mb-3">We use personal data only for clear purposes, including:</p>
+          <ul className="list-disc space-y-2 pl-5">
+            <li>
+              <strong className="font-semibold text-slate-800">Service delivery:</strong> to show summaries,
+              sync bookmarks or preferences, and operate features you choose to use.
+            </li>
+            <li>
+              <strong className="font-semibold text-slate-800">Notifications:</strong> to send optional pushes
+              you have enabled.
+            </li>
+            <li>
+              <strong className="font-semibold text-slate-800">Support:</strong> to receive and answer
+              messages sent via the contact form or other channels you use.
+            </li>
+            <li>
+              <strong className="font-semibold text-slate-800">Security and integrity:</strong> to protect
+              accounts, investigate abuse, and comply with law where required.
+            </li>
+          </ul>
+          <p className="mt-3">
+            We <strong className="font-semibold text-slate-800">do not sell</strong> your personal data. We{" "}
+            <strong className="font-semibold text-slate-800">do not</strong> use it for cross-site targeted
+            advertising in the conventional ad-tech sense.
+          </p>
+        </section>
+
+        <section aria-labelledby="p-minimize">
+          <h2 id="p-minimize" className="mb-3 text-xl font-semibold text-slate-900">
+            3. Data minimisation and accuracy
+          </h2>
+          <p>
+            We collect only what we reasonably need for the purposes above. We take reasonable steps to keep
+            personal data accurate when we use it for those purposes. Browsing public pages without an account
+            may still involve limited technical information that hosting and infrastructure providers process so
+            the site can load (for example, IP address and browser type in server logs); we use such information
+            only for security, debugging, and aggregate understanding of traffic where permitted.
+          </p>
+        </section>
+
+        <section aria-labelledby="p-rights">
+          <h2 id="p-rights" className="mb-3 text-xl font-semibold text-slate-900">
+            4. Your rights under the DPDP Act
+          </h2>
+          <p className="mb-3">
+            As a Data Principal, you have rights under the DPDP Act, including the following. We will respond in
+            line with the Act and applicable rules.
+          </p>
+          <p className="mb-3">
+            <strong className="font-semibold text-slate-800">Withdraw consent:</strong> You may withdraw
+            consent where processing was consent-based. We will stop that processing unless another lawful
+            ground applies.
+          </p>
+          <p className="mb-3">
+            <strong className="font-semibold text-slate-800">Erasure:</strong> You may request deletion of your
+            personal data. We will erase it when no exception applies (for example, legal retention). In our
+            mobile app, use the account or profile area to delete your account where that option is available.
+            You may also email us at{" "}
+            <a
+              href="mailto:hello@nonews.in"
+              className="text-slate-900 underline underline-offset-2 hover:text-slate-700"
+            >
+              hello@nonews.in
+            </a>{" "}
+            with a clear request to delete your account or erase your data.
+          </p>
+          <p className="mb-3">
+            <strong className="font-semibold text-slate-800">Access and correction:</strong> You may ask what
+            personal data we process, for what purposes, and to whom it may be disclosed, and you may request
+            correction of inaccurate or incomplete data. Contact us using the details below.
+          </p>
+          <p>
+            <strong className="font-semibold text-slate-800">Grievance redressal:</strong> If you are not
+            satisfied with our response, you may escalate in accordance with the DPDP Act, including to the Data
+            Protection Board of India where applicable.
+          </p>
+        </section>
+
+        <section aria-labelledby="p-share">
+          <h2 id="p-share" className="mb-3 text-xl font-semibold text-slate-900">
+            5. Sharing and processors
+          </h2>
+          <p>
+            We may share personal data with{" "}
+            <strong className="font-semibold text-slate-800">service providers</strong> (processors) who help
+            us host the Service, authenticate users, send notifications, or store data—under agreements that
+            require them to protect the data and process it only on our instructions. We may disclose
+            information if required by law, court order, or competent authority, or to protect the rights and
+            safety of users and the public. If our business is reorganised (for example, a merger), we will
+            provide notice where the law requires. We do not sell or rent personal data.
+          </p>
+        </section>
+
+        <section aria-labelledby="p-retention">
+          <h2 id="p-retention" className="mb-3 text-xl font-semibold text-slate-900">
+            6. Retention and security
+          </h2>
+          <p className="mb-3">
+            We retain personal data only as long as needed for the purposes described or as required by law. When
+            you request erasure and no exception applies, we delete or anonymise data within the timelines the
+            law requires.
+          </p>
+          <p>
+            We apply reasonable technical and organisational measures to protect personal data against unauthorised
+            access, alteration, or loss. No online service can promise perfect security; if we become aware of an
+            incident that materially affects you, we will address it in line with applicable law.
+          </p>
+        </section>
+
+        <section aria-labelledby="p-children">
+          <h2 id="p-children" className="mb-3 text-xl font-semibold text-slate-900">
+            7. Children
+          </h2>
+          <p>
+            The Service is not directed at children under 18. We do not knowingly collect personal data from
+            children. If you believe we have, please contact us and we will take steps to delete such data.
+          </p>
+        </section>
+
+        <section aria-labelledby="p-changes">
+          <h2 id="p-changes" className="mb-3 text-xl font-semibold text-slate-900">
+            8. Changes to this policy
+          </h2>
+          <p>
+            We may update this Privacy Policy from time to time. We will post the revised policy on this page
+            and update the “Last updated” date. For material changes, we may also notify you by reasonable means
+            (for example, a notice in the app or by email). Continued use of the Service after the effective date
+            means you acknowledge the updated policy.
+          </p>
+        </section>
+
+        <section aria-labelledby="p-contact">
+          <h2 id="p-contact" className="mb-3 text-xl font-semibold text-slate-900">
+            9. Contact
+          </h2>
+          <p>
+            Questions about this Privacy Policy or your personal data:{" "}
+            <a
+              href="mailto:hello@nonews.in"
+              className="text-slate-900 underline underline-offset-2 hover:text-slate-700"
+            >
+              hello@nonews.in
+            </a>{" "}
+            or our{" "}
+            <Link href="/contact" className="text-slate-900 underline underline-offset-2 hover:text-slate-700">
+              contact page
+            </Link>
+            .
+          </p>
+        </section>
+
+        <p className="border-t border-slate-200 pt-8 text-sm italic text-slate-500">
+          This Privacy Policy is meant to describe our practices clearly. It is not legal advice. If you need
+          certainty for compliance or disputes, consult a qualified professional.
         </p>
-      </section>
-
-      <section className="mb-10">
-        <h2
-          className="mb-3 text-xl font-semibold text-slate-900"
-          style={{ fontFamily: "Georgia, serif" }}
-        >
-          Information we collect
-        </h2>
-        <ul
-          className="list-disc space-y-3 pl-5 leading-relaxed text-slate-600"
-          style={{ fontFamily: "Georgia, serif" }}
-        >
-          <li>
-            <strong className="font-semibold text-slate-800">Account and profile.</strong> If you
-            sign in, we process identifiers such as your email address and a user ID provided by
-            our authentication service. You may also save preferences (for example, authors or
-            topics you follow) that are tied to your account.
-          </li>
-          <li>
-            <strong className="font-semibold text-slate-800">Usage of the service.</strong> We may
-            collect technical and usage data needed to run the app—for example device or browser
-            type, approximate region (via IP where applicable), and interactions with pages or
-            features. This helps us keep the product reliable and understand what readers value.
-          </li>
-          <li>
-            <strong className="font-semibold text-slate-800">Content you see.</strong> We log
-            server-side activity required to deliver summaries, links to sources, and
-            personalization you have opted into. We do not sell your personal information.
-          </li>
-        </ul>
-      </section>
-
-      <section className="mb-10">
-        <h2
-          className="mb-3 text-xl font-semibold text-slate-900"
-          style={{ fontFamily: "Georgia, serif" }}
-        >
-          How we use information
-        </h2>
-        <p className="mb-3 leading-relaxed text-slate-600" style={{ fontFamily: "Georgia, serif" }}>
-          We use the data above to:
-        </p>
-        <ul
-          className="list-disc space-y-2 pl-5 leading-relaxed text-slate-600"
-          style={{ fontFamily: "Georgia, serif" }}
-        >
-          <li>Provide, secure, and improve NoNews (including sign-in, bookmarks, and following).</li>
-          <li>Diagnose errors, prevent abuse, and comply with applicable law.</li>
-          <li>Communicate service-related notices when necessary.</li>
-        </ul>
-      </section>
-
-      <section id="ai-processing" className="mb-10 scroll-mt-6">
-        <h2
-          className="mb-3 text-xl font-semibold text-slate-900"
-          style={{ fontFamily: "Georgia, serif" }}
-        >
-          AI and summarization
-        </h2>
-        <p className="leading-relaxed text-slate-600" style={{ fontFamily: "Georgia, serif" }}>
-          Summaries are produced using automated systems (including Google Gemini) from editorial
-          text we have ingested from public sources.{" "}
-          <strong className="font-semibold text-slate-800">
-            That processing happens on our infrastructure, not on your device, for the purpose of
-            generating briefs for all readers.
-          </strong>{" "}
-          We do not use your private messages to train third-party models unless we expressly say
-          so in a separate notice. Original reporting and viewpoints remain with the source
-          publications; each summary links to the full article.
-        </p>
-      </section>
-
-      <section className="mb-10">
-        <h2
-          className="mb-3 text-xl font-semibold text-slate-900"
-          style={{ fontFamily: "Georgia, serif" }}
-        >
-          Cookies and local storage
-        </h2>
-        <p className="leading-relaxed text-slate-600" style={{ fontFamily: "Georgia, serif" }}>
-          We use cookies and similar technologies that are necessary for the site to function (for
-          example, to keep you signed in and to remember session preferences). You can control many
-          cookies through your browser settings; disabling some of them may limit certain
-          features.
-        </p>
-      </section>
-
-      <section className="mb-10">
-        <h2
-          className="mb-3 text-xl font-semibold text-slate-900"
-          style={{ fontFamily: "Georgia, serif" }}
-        >
-          Service providers
-        </h2>
-        <p className="leading-relaxed text-slate-600" style={{ fontFamily: "Georgia, serif" }}>
-          We rely on trusted vendors to host and operate NoNews. These may include, for example,
-          database and authentication providers (such as Supabase), hosting and deployment platforms
-          (such as Vercel), and AI inference providers (such as Google) used only as described
-          here. They process data on our behalf under contractual safeguards appropriate to their
-          role.
-        </p>
-      </section>
-
-      <section className="mb-10">
-        <h2
-          className="mb-3 text-xl font-semibold text-slate-900"
-          style={{ fontFamily: "Georgia, serif" }}
-        >
-          Retention and security
-        </h2>
-        <p className="leading-relaxed text-slate-600" style={{ fontFamily: "Georgia, serif" }}>
-          We keep personal information only as long as needed for the purposes above or as required
-          by law. We use administrative, technical, and organizational measures designed to protect
-          your data. No method of transmission over the internet is completely secure; we work to
-          apply reasonable safeguards in line with the nature of our service.
-        </p>
-      </section>
-
-      <section className="mb-10">
-        <h2
-          className="mb-3 text-xl font-semibold text-slate-900"
-          style={{ fontFamily: "Georgia, serif" }}
-        >
-          Your choices
-        </h2>
-        <p className="leading-relaxed text-slate-600" style={{ fontFamily: "Georgia, serif" }}>
-          Depending on where you live, you may have rights to access, correct, delete, or export
-          personal data we hold about you, or to object to or restrict certain processing. To
-          exercise these rights, sign in and use in-product controls where available, or contact us
-          using the details below. We may need to verify your identity before fulfilling a request.
-        </p>
-      </section>
-
-      <section className="mb-10">
-        <h2
-          className="mb-3 text-xl font-semibold text-slate-900"
-          style={{ fontFamily: "Georgia, serif" }}
-        >
-          Children
-        </h2>
-        <p className="leading-relaxed text-slate-600" style={{ fontFamily: "Georgia, serif" }}>
-          NoNews is not directed at children under 13 (or the age required by your jurisdiction),
-          and we do not knowingly collect personal information from them. If you believe we have
-          done so in error, please contact us and we will take appropriate steps.
-        </p>
-      </section>
-
-      <section className="mb-10">
-        <h2
-          className="mb-3 text-xl font-semibold text-slate-900"
-          style={{ fontFamily: "Georgia, serif" }}
-        >
-          International transfers
-        </h2>
-        <p className="leading-relaxed text-slate-600" style={{ fontFamily: "Georgia, serif" }}>
-          Our infrastructure and partners may process data in countries other than where you live.
-          Where required, we rely on appropriate safeguards for cross-border transfers.
-        </p>
-      </section>
-
-      <section className="mb-10">
-        <h2
-          className="mb-3 text-xl font-semibold text-slate-900"
-          style={{ fontFamily: "Georgia, serif" }}
-        >
-          Changes to this policy
-        </h2>
-        <p className="leading-relaxed text-slate-600" style={{ fontFamily: "Georgia, serif" }}>
-          We may update this Privacy Policy from time to time. We will post the revised version on
-          this page and adjust the &quot;Last updated&quot; date. For material changes, we will
-          provide additional notice if the law requires it.
-        </p>
-      </section>
-
-      <section className="mb-6">
-        <h2
-          className="mb-3 text-xl font-semibold text-slate-900"
-          style={{ fontFamily: "Georgia, serif" }}
-        >
-          Contact
-        </h2>
-        <p className="leading-relaxed text-slate-600" style={{ fontFamily: "Georgia, serif" }}>
-          Questions about privacy at NoNews? Visit our{" "}
-          <Link href="/about" className="font-medium text-slate-800 underline decoration-slate-300 underline-offset-2 hover:decoration-slate-600">
-            About
-          </Link>{" "}
-          page for context on the product, or reach us on{" "}
-          <a
-            href="https://twitter.com/mr_mahipal2802"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-slate-800 underline decoration-slate-300 underline-offset-2 hover:decoration-slate-600"
-          >
-            X (Twitter) @mr_mahipal2802
-          </a>
-          . For data-protection requests, include the email associated with your account so we
-          can help you efficiently.
-        </p>
-      </section>
-
-      <p
-        className="text-sm italic text-slate-500"
-        style={{ fontFamily: "Georgia, serif" }}
-      >
-        Thank you for trusting NoNews with your time and attention.
-      </p>
+      </div>
     </main>
   );
 }

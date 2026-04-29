@@ -1,10 +1,13 @@
 import { useBookmarks } from "../../hooks/useBookmarks";
 import { rejectAfter } from "../../lib/raceAsync";
 import { supabase } from "../../lib/supabase";
-import { fetchLatestCompletedEditorials } from "@nonews/shared";
+import {
+  EDITORIAL_FEED_PAGE_SIZE,
+  fetchCompletedEditorialsPage,
+} from "@nonews/shared";
 import { SummaryCard, type ArticleWithSource } from "@nonews/ui";
 import { Coffee, FileText, Search, Users, X } from "lucide-react-native";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
 import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
@@ -180,11 +183,22 @@ export default function HomeTab() {
     [followedAuthorIds]
   );
 
-  const { data: articles, isLoading: articlesLoading, error } = useQuery({
-    queryKey: ["editorial-feed"],
-    queryFn: async () => {
+  const {
+    data: infiniteData,
+    isLoading: articlesLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["editorial-feed", "sort-processed-date"],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
       const fetchArticles = async (): Promise<ArticleWithAuthorId[]> => {
-        const rows = await fetchLatestCompletedEditorials(supabase, { limit: 75 });
+        const rows = await fetchCompletedEditorialsPage(supabase, {
+          limit: EDITORIAL_FEED_PAGE_SIZE,
+          offset: pageParam,
+        });
         return (rows ?? []) as ArticleWithAuthorId[];
       };
 
@@ -193,7 +207,16 @@ export default function HomeTab() {
         rejectAfter(25_000, "Could not load articles. Check network and EXPO_PUBLIC_SUPABASE_* in .env."),
       ]);
     },
+    getNextPageParam: (lastPage, _pages, lastPageParam) =>
+      lastPage.length < EDITORIAL_FEED_PAGE_SIZE
+        ? undefined
+        : lastPageParam + EDITORIAL_FEED_PAGE_SIZE,
   });
+
+  const articles = useMemo(
+    () => infiniteData?.pages.flat() ?? [],
+    [infiniteData?.pages]
+  );
 
   /** True when every row is from an older batch (none match today’s local calendar date). */
   const isShowingRecentFallback = useMemo(() => {
@@ -364,6 +387,17 @@ export default function HomeTab() {
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+          }}
+          onEndReachedThreshold={0.25}
+          ListFooterComponent={
+            isFetchingNextPage ? (
+              <View style={styles.listFooterLoading}>
+                <ActivityIndicator size="small" color="#0f172a" />
+              </View>
+            ) : null
+          }
         />
       )}
     </SafeAreaView>
@@ -493,6 +527,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 32,
     paddingTop: 8,
+  },
+  listFooterLoading: {
+    paddingVertical: 16,
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyState: {
     flex: 1,

@@ -128,7 +128,6 @@ export function SummaryCard({
   const [localSimplified, setLocalSimplified] = useState<string | null>(null);
   const [explainLoading, setExplainLoading] = useState(false);
   const [explainError, setExplainError] = useState<string | null>(null);
-  const [summaryExpanded, setSummaryExpanded] = useState(false);
   const simplifySheetRef = useRef<BottomSheetModal>(null);
 
   const sourceName = item.sources?.name ?? "Unknown Source";
@@ -181,7 +180,6 @@ export function SummaryCard({
   const showBookmark = onToggleBookmark != null;
 
   const summaryText = item.ai_summary ?? "No summary available.";
-  const showReadMore = summaryText.length > 120;
 
   return (
     <View style={[styles.card, { borderLeftColor: border, borderLeftWidth: 4 }]}>
@@ -194,22 +192,9 @@ export function SummaryCard({
           />
         )}
       </View>
-      <Text
-        style={[styles.summaryText, { fontFamily: "Georgia" }]}
-        numberOfLines={summaryExpanded ? undefined : 3}
-      >
+      <Text style={[styles.summaryText, { fontFamily: "Georgia" }]}>
         {summaryText}
       </Text>
-      {showReadMore && (
-        <Pressable
-          onPress={() => setSummaryExpanded((e) => !e)}
-          style={({ pressed }) => [styles.readMoreButton, pressed && styles.readMorePressed]}
-        >
-          <Text style={styles.readMoreText}>
-            {summaryExpanded ? "Read less" : "Read more"}
-          </Text>
-        </Pressable>
-      )}
       {showExplain && (
         <>
           <Pressable
@@ -333,22 +318,10 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   summaryText: {
-    marginBottom: 4,
+    marginBottom: 12,
     fontSize: 16,
     lineHeight: 24,
     color: "#1e293b",
-  },
-  readMoreButton: {
-    alignSelf: "flex-start",
-    marginBottom: 12,
-    paddingVertical: 2,
-  },
-  readMorePressed: { opacity: 0.7 },
-  readMoreText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#475569",
-    textDecorationLine: "underline",
   },
   cardFooter: {
     marginBottom: 12,

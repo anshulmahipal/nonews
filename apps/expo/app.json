@@ -7,6 +7,7 @@
     "scheme": "editorialapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/icon.png",
       "resizeMode": "contain",
@@ -15,7 +16,8 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.logicnib.nonews",
-      "usesAppleSignIn": true
+      "usesAppleSignIn": true,
+      "appleTeamId": "P7BY6L2C5S"
     },
     "android": {
       "adaptiveIcon": {

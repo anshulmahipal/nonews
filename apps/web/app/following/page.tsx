@@ -30,7 +30,7 @@ export default function FollowingPage() {
       const followRowsTyped = (followRows ?? []) as { author_id: string | null }[];
       const authorIds = followRowsTyped
         .map((r) => r.author_id)
-        .filter((id): id is string => id != null && id !== "");
+        .filter((id): id is string => typeof id === "string" && id.length > 0);
       if (authorIds.length === 0) return [] as FollowedAuthor[];
 
       const { data: authorRows, error: authorError } = await supabase

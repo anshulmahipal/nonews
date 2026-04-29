@@ -182,6 +182,7 @@ export interface Database {
         Row: {
           id: string;
           name: string;
+          email: string | null;
           subject: string;
           message: string;
           user_id: string | null;
@@ -190,6 +191,7 @@ export interface Database {
         Insert: {
           id?: string;
           name: string;
+          email?: string | null;
           subject: string;
           message: string;
           user_id?: string | null;
@@ -198,6 +200,7 @@ export interface Database {
         Update: {
           id?: string;
           name?: string;
+          email?: string | null;
           subject?: string;
           message?: string;
           user_id?: string | null;

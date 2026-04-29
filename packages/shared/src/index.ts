@@ -29,6 +29,8 @@ export type {
 } from "./domain";
 export { simplifySummary } from "./ai";
 export {
+  EDITORIAL_FEED_PAGE_SIZE,
   EDITORIAL_FEED_SELECT,
+  fetchCompletedEditorialsPage,
   fetchLatestCompletedEditorials,
 } from "./editorialFeed";

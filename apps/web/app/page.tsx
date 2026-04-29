@@ -1,10 +1,14 @@
 "use client";
 
 import { SummaryCard, type ArticleWithSource } from "@nonews/ui";
-import { createSupabaseClient, fetchLatestCompletedEditorials } from "@nonews/shared";
-import { useQuery } from "@tanstack/react-query";
+import {
+  createSupabaseClient,
+  EDITORIAL_FEED_PAGE_SIZE,
+  fetchCompletedEditorialsPage,
+} from "@nonews/shared";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useBookmarks } from "../hooks/useBookmarks";
 
@@ -39,14 +43,50 @@ export default function HomePage() {
     setDisplayDate(formatDisplayDate());
   }, []);
 
-  const { data: articles, isLoading, error } = useQuery({
-    queryKey: ["editorial-feed"],
-    queryFn: async () => {
+  const {
+    data: infiniteData,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["editorial-feed", "sort-processed-date"],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
       const supabase = createSupabaseClient();
-      const rows = await fetchLatestCompletedEditorials(supabase, { limit: 75 });
+      const rows = await fetchCompletedEditorialsPage(supabase, {
+        limit: EDITORIAL_FEED_PAGE_SIZE,
+        offset: pageParam,
+      });
       return (rows ?? []) as ArticleWithSource[];
     },
+    getNextPageParam: (lastPage, _pages, lastPageParam) =>
+      lastPage.length < EDITORIAL_FEED_PAGE_SIZE
+        ? undefined
+        : lastPageParam + EDITORIAL_FEED_PAGE_SIZE,
   });
+
+  const articles = useMemo(
+    () => infiniteData?.pages.flat() ?? [],
+    [infiniteData?.pages]
+  );
+
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el || !hasNextPage || isFetchingNextPage) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) fetchNextPage();
+      },
+      { rootMargin: "320px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const isArchiveOnly = useMemo(() => {
     if (!articles?.length) return false;
@@ -172,34 +212,47 @@ export default function HomePage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          {articles.map((item) => (
-            <SummaryCard
-              key={item.id}
-              item={item}
-              onReadFull={handleReadFull}
-              isBookmarked={isBookmarked(item.id)}
-              onToggleBookmark={() => toggleBookmark(item.id)}
-              isBookmarkDisabled={isToggling(item.id)}
-              onShare={() => {
-                const text = [item.title, item.ai_summary ?? "", item.link].filter(Boolean).join("\n\n") || item.link;
-                if (typeof navigator !== "undefined" && navigator.share) {
-                  navigator.share({ title: item.title, text, url: item.link });
-                } else {
-                  navigator.clipboard?.writeText(text);
-                }
-              }}
-              onExplainRequested={async (articleId) => {
-                const supabase = createSupabaseClient();
-                const { data, error } = await supabase.functions.invoke("simplify-summary", {
-                  body: { articleId },
-                });
-                if (error) return null;
-                return (data?.simplified as string) ?? null;
-              }}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {articles.map((item) => (
+              <SummaryCard
+                key={item.id}
+                item={item}
+                onReadFull={handleReadFull}
+                isBookmarked={isBookmarked(item.id)}
+                onToggleBookmark={() => toggleBookmark(item.id)}
+                isBookmarkDisabled={isToggling(item.id)}
+                onShare={() => {
+                  const text = [item.title, item.ai_summary ?? "", item.link].filter(Boolean).join("\n\n") || item.link;
+                  if (typeof navigator !== "undefined" && navigator.share) {
+                    navigator.share({ title: item.title, text, url: item.link });
+                  } else {
+                    navigator.clipboard?.writeText(text);
+                  }
+                }}
+                onExplainRequested={async (articleId) => {
+                  const supabase = createSupabaseClient();
+                  const { data, error } = await supabase.functions.invoke("simplify-summary", {
+                    body: { articleId },
+                  });
+                  if (error) return null;
+                  return (data?.simplified as string) ?? null;
+                }}
+              />
+            ))}
+          </div>
+          {hasNextPage ? (
+            <div
+              ref={loadMoreRef}
+              className="flex min-h-[48px] items-center justify-center py-8"
+              aria-hidden
+            >
+              {isFetchingNextPage ? (
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-slate-900" />
+              ) : null}
+            </div>
+          ) : null}
+        </>
       )}
     </main>
   );

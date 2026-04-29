@@ -54,7 +54,6 @@ export function SummaryCard({
   const [localSimplified, setLocalSimplified] = useState<string | null>(null);
   const [explainLoading, setExplainLoading] = useState(false);
   const [explainError, setExplainError] = useState<string | null>(null);
-  const [summaryExpanded, setSummaryExpanded] = useState(false);
 
   const sourceName = item.sources?.name ?? "Unknown Source";
   const sourceDomain = getDomain(item.link);
@@ -121,20 +120,11 @@ export function SummaryCard({
       </h3>
       <div className="mb-3">
         <p
-          className={`text-base leading-relaxed text-slate-800 ${!summaryExpanded ? "line-clamp-3" : ""}`}
+          className="text-base leading-relaxed text-slate-800"
           style={{ fontFamily: "Georgia, serif" }}
         >
           {summaryText}
         </p>
-        {summaryText.length > 120 && (
-          <button
-            type="button"
-            onClick={() => setSummaryExpanded((e) => !e)}
-            className="mt-1 text-sm font-medium text-slate-600 underline decoration-slate-400 underline-offset-2 hover:text-slate-800"
-          >
-            {summaryExpanded ? "Read less" : "Read more"}
-          </button>
-        )}
       </div>
       {showExplain && (
         <>

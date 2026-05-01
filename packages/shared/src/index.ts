@@ -34,3 +34,10 @@ export {
   fetchCompletedEditorialsPage,
   fetchLatestCompletedEditorials,
 } from "./editorialFeed";
+export {
+  STANCE_TAG_HELP_INTRO,
+  STANCE_DESCRIPTIONS,
+  UNKNOWN_STANCE_DESCRIPTION,
+  getStanceDescription,
+  STANCES_ORDERED,
+} from "./stanceLabels";

@@ -3,6 +3,7 @@
 import { createSupabaseClient } from "@nonews/shared";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { safeNextPath } from "../../../lib/authUrls";
 
 /** Parse hash fragment into key-value pairs */
 function parseHash(hash: string): Record<string, string> {
@@ -22,7 +23,7 @@ function AuthCallbackContent() {
 
   useEffect(() => {
     const run = async () => {
-      const next = searchParams.get("next") ?? "/";
+      const next = safeNextPath(searchParams.get("next"));
       const supabase = createSupabaseClient();
 
       // Supabase may put auth data in hash (implicit) or query (PKCE)
@@ -43,7 +44,7 @@ function AuthCallbackContent() {
           return;
         }
         // Full redirect so session is read fresh from storage
-        window.location.href = next.startsWith("/") ? next : "/";
+        window.location.href = next;
         return;
       }
 
@@ -60,7 +61,7 @@ function AuthCallbackContent() {
           return;
         }
         // Full redirect so session is read fresh from storage
-        window.location.href = next.startsWith("/") ? next : "/";
+        window.location.href = next;
         return;
       }
 

@@ -3,6 +3,7 @@
 import { createSupabaseClient } from "@nonews/shared";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { getOAuthRedirectOrigin, safeNextPath } from "../../lib/authUrls";
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -16,11 +17,16 @@ function LoginContent() {
     setError(null);
     try {
       const supabase = createSupabaseClient();
-      const next = searchParams.get("next") ?? "/";
+      const next = safeNextPath(searchParams.get("next"));
+      const origin = getOAuthRedirectOrigin();
+      if (!origin) {
+        setError("Missing site URL. Set NEXT_PUBLIC_APP_URL on the server.");
+        return;
+      }
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+          redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
         },
       });
       if (authError) throw authError;

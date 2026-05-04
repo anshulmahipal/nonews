@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const SUPPORT_EMAIL = "support@editorialquickread.com";
+const SUPPORT_EMAIL = "hello@nonews.in";
 
 const emailFormatOk = (value: string) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -189,6 +189,14 @@ export default function ContactUsScreen() {
           ) : null}
 
           {formStatus === "success" ? null : (
+          <>
+          <Text style={styles.intro}>
+            Reach us at{" "}
+            <Text style={styles.introEmail} onPress={handleEmailSupport}>
+              {SUPPORT_EMAIL}
+            </Text>
+            {" "}or send a message below.
+          </Text>
           <View style={styles.formCard}>
             <Text style={styles.label}>Name</Text>
             <TextInput
@@ -265,6 +273,7 @@ export default function ContactUsScreen() {
               )}
             </Pressable>
           </View>
+          </>
           )}
 
           {formStatus === "success" ? null : (
@@ -275,7 +284,10 @@ export default function ContactUsScreen() {
               style={({ pressed }) => [styles.quickButton, pressed && styles.quickPressed]}
             >
               <Mail size={20} color="#0f172a" strokeWidth={2} />
-              <Text style={styles.quickLabel}>Email Support</Text>
+              <View style={styles.quickButtonText}>
+                <Text style={styles.quickLabel}>Email support</Text>
+                <Text style={styles.quickEmail}>{SUPPORT_EMAIL}</Text>
+              </View>
             </Pressable>
           </View>
           )}
@@ -319,6 +331,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 40,
+  },
+  intro: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#475569",
+    marginBottom: 16,
+    fontFamily: "Georgia",
+  },
+  introEmail: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#0f172a",
+    textDecorationLine: "underline",
   },
   formCard: {
     backgroundColor: "#fff",
@@ -402,10 +427,18 @@ const styles = StyleSheet.create({
   quickPressed: {
     opacity: 0.85,
   },
+  quickButtonText: {
+    flex: 1,
+    gap: 2,
+  },
   quickLabel: {
     fontSize: 16,
     fontWeight: "500",
     color: "#0f172a",
+  },
+  quickEmail: {
+    fontSize: 14,
+    color: "#64748b",
   },
   successCard: {
     backgroundColor: "#ecfdf5",

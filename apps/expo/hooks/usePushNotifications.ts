@@ -24,7 +24,7 @@ Notifications.setNotificationHandler({
  * Also listens for notification taps and navigates to Morning Brief.
  */
 export function usePushNotifications() {
-  const responseListener = useRef<Notifications.EventSubscription>();
+  const responseListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
     let token: string | null = null;

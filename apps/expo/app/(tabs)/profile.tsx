@@ -1,3 +1,4 @@
+import { CONTACT_PAGE_URL, SUPPORT_EMAIL } from "@nonews/shared";
 import { supabase } from "../../lib/supabase";
 import { router, useFocusEffect } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -42,7 +43,7 @@ export default function ProfileTab() {
           Profile
         </Text>
         <Text style={styles.headerSubtitle}>
-          Settings & account
+          Settings, support & account
         </Text>
       </View>
 
@@ -61,14 +62,29 @@ export default function ProfileTab() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>About & Legal</Text>
+        <Text style={styles.sectionTitle}>Support & Legal</Text>
         <View style={styles.linkList}>
+          <Pressable
+            onPress={() => router.push("/contact")}
+            style={({ pressed }) => [styles.linkRow, pressed && styles.linkRowPressed]}
+          >
+            <Mail size={20} color="#64748b" strokeWidth={2} />
+            <View style={styles.linkTextGroup}>
+              <Text style={styles.linkLabel}>Contact & support</Text>
+              <Text style={styles.linkMeta} numberOfLines={1}>
+                {SUPPORT_EMAIL} · {CONTACT_PAGE_URL.replace(/^https?:\/\//, "")}
+              </Text>
+            </View>
+            <ChevronRight size={20} color="#94a3b8" />
+          </Pressable>
           <Pressable
             onPress={() => router.push("/about")}
             style={({ pressed }) => [styles.linkRow, pressed && styles.linkRowPressed]}
           >
             <Info size={20} color="#64748b" strokeWidth={2} />
-            <Text style={styles.linkLabel}>About</Text>
+            <View style={styles.linkTextGroup}>
+              <Text style={styles.linkLabel}>About</Text>
+            </View>
             <ChevronRight size={20} color="#94a3b8" />
           </Pressable>
           <Pressable
@@ -76,7 +92,9 @@ export default function ProfileTab() {
             style={({ pressed }) => [styles.linkRow, pressed && styles.linkRowPressed]}
           >
             <FileText size={20} color="#64748b" strokeWidth={2} />
-            <Text style={styles.linkLabel}>Terms of Service</Text>
+            <View style={styles.linkTextGroup}>
+              <Text style={styles.linkLabel}>Terms of Service</Text>
+            </View>
             <ChevronRight size={20} color="#94a3b8" />
           </Pressable>
           <Pressable
@@ -84,15 +102,9 @@ export default function ProfileTab() {
             style={({ pressed }) => [styles.linkRow, pressed && styles.linkRowPressed]}
           >
             <Shield size={20} color="#64748b" strokeWidth={2} />
-            <Text style={styles.linkLabel}>Privacy Policy</Text>
-            <ChevronRight size={20} color="#94a3b8" />
-          </Pressable>
-          <Pressable
-            onPress={() => router.push("/contact")}
-            style={({ pressed }) => [styles.linkRow, pressed && styles.linkRowPressed]}
-          >
-            <Mail size={20} color="#64748b" strokeWidth={2} />
-            <Text style={styles.linkLabel}>Contact us</Text>
+            <View style={styles.linkTextGroup}>
+              <Text style={styles.linkLabel}>Privacy Policy</Text>
+            </View>
             <ChevronRight size={20} color="#94a3b8" />
           </Pressable>
         </View>
@@ -205,11 +217,18 @@ const styles = StyleSheet.create({
     borderBottomColor: "#f1f5f9",
   },
   linkRowPressed: { opacity: 0.7 },
-  linkLabel: {
+  linkTextGroup: {
     flex: 1,
+    gap: 2,
+  },
+  linkLabel: {
     fontSize: 16,
     fontWeight: "500",
     color: "#0f172a",
+  },
+  linkMeta: {
+    fontSize: 13,
+    color: "#64748b",
   },
   actions: {
     paddingHorizontal: 16,

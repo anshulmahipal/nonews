@@ -97,7 +97,7 @@ export default function RootLayout() {
             <Stack.Screen name="terms" options={{ title: "Terms of Service" }} />
             <Stack.Screen name="privacy" options={{ title: "Privacy Policy" }} />
             <Stack.Screen name="about" options={{ title: "About" }} />
-            <Stack.Screen name="contact" options={{ title: "Contact us" }} />
+            <Stack.Screen name="contact" options={{ title: "Contact & Support" }} />
           </Stack>
         </QueryClientProvider>
       </BottomSheetModalProvider>

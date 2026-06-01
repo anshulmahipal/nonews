@@ -2,7 +2,14 @@
  * @nonews/shared – Supabase client and TypeScript types for NoNews.
  */
 
-export { APP_NAME, SITE_DOMAIN, SITE_URL } from "./branding";
+export {
+  APP_NAME,
+  SITE_DOMAIN,
+  SITE_URL,
+  CONTACT_PAGE_PATH,
+  CONTACT_PAGE_URL,
+  SUPPORT_EMAIL,
+} from "./branding";
 export {
   isAllowedEditorialShareUrl,
   getShortenApiBase,

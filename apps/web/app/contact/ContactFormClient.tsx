@@ -1,11 +1,9 @@
 "use client";
 
-import { createSupabaseClient } from "@nonews/shared";
+import { APP_NAME, CONTACT_PAGE_URL, SUPPORT_EMAIL, createSupabaseClient } from "@nonews/shared";
 import type { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
-
-const SUPPORT_EMAIL = "hello@nonews.in";
 
 const emailFormatOk = (value: string) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -148,12 +146,20 @@ export function ContactFormClient() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       <p className="text-sm text-slate-500" style={{ fontFamily: "Georgia, serif" }}>
-        Questions, feedback, or ideas—write to us below, or email{" "}
+        Questions, feedback, publisher requests, or policy concerns about {APP_NAME}: write to us
+        below, email{" "}
         <a
           href={`mailto:${SUPPORT_EMAIL}`}
           className="text-slate-800 underline decoration-slate-300 underline-offset-2 transition hover:decoration-slate-500"
         >
           {SUPPORT_EMAIL}
+        </a>
+        , or use our public support page at{" "}
+        <a
+          href={CONTACT_PAGE_URL}
+          className="text-slate-800 underline decoration-slate-300 underline-offset-2 transition hover:decoration-slate-500"
+        >
+          {CONTACT_PAGE_URL.replace(/^https?:\/\//, "")}
         </a>
         .
         {!authLoading && user ? (

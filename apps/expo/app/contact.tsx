@@ -1,7 +1,8 @@
+import { APP_NAME, CONTACT_PAGE_URL, SITE_URL, SUPPORT_EMAIL } from "@nonews/shared";
 import { supabase } from "../lib/supabase";
 import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Mail } from "lucide-react-native";
+import { ArrowLeft, Globe, Mail } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -17,8 +18,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const SUPPORT_EMAIL = "hello@nonews.in";
 
 const emailFormatOk = (value: string) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -130,7 +129,11 @@ export default function ContactUsScreen() {
   };
 
   const handleEmailSupport = () => {
-    Linking.openURL(`mailto:${SUPPORT_EMAIL}`);
+    void Linking.openURL(`mailto:${SUPPORT_EMAIL}`);
+  };
+
+  const handleOpenWebsite = () => {
+    void Linking.openURL(CONTACT_PAGE_URL);
   };
 
   return (
@@ -144,7 +147,7 @@ export default function ContactUsScreen() {
           <ArrowLeft size={24} color="#0f172a" />
         </Pressable>
         <Text style={[styles.headerTitle, { fontFamily: "Georgia" }]}>
-          Contact us
+          Contact & Support
         </Text>
       </View>
 
@@ -190,14 +193,37 @@ export default function ContactUsScreen() {
 
           {formStatus === "success" ? null : (
           <>
-          <Text style={styles.intro}>
-            Reach us at{" "}
-            <Text style={styles.introEmail} onPress={handleEmailSupport}>
-              {SUPPORT_EMAIL}
+          <View style={styles.infoCard}>
+            <Text style={styles.infoEyebrow}>Contact Information</Text>
+            <Text style={[styles.infoTitle, { fontFamily: "Georgia" }]}>
+              Reach the {APP_NAME} team
             </Text>
-            {" "}or send a message below.
-          </Text>
+            <Text style={styles.infoBody}>
+              Questions about editorials, account access, privacy, or publisher concerns can be
+              sent to us by email or through our support website.
+            </Text>
+            <View style={styles.infoList}>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Support email</Text>
+                <Text style={styles.infoValue}>{SUPPORT_EMAIL}</Text>
+              </View>
+              <View style={styles.infoDivider} />
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Website</Text>
+                <Text style={styles.infoValue}>{SITE_URL.replace(/^https?:\/\//, "")}</Text>
+              </View>
+              <View style={styles.infoDivider} />
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Support page</Text>
+                <Text style={styles.infoValue}>{CONTACT_PAGE_URL.replace(/^https?:\/\//, "")}</Text>
+              </View>
+            </View>
+          </View>
           <View style={styles.formCard}>
+            <Text style={styles.formTitle}>Send us a message</Text>
+            <Text style={styles.formIntro}>
+              We read every note and reply by email as soon as we can.
+            </Text>
             <Text style={styles.label}>Name</Text>
             <TextInput
               style={styles.input}
@@ -289,6 +315,16 @@ export default function ContactUsScreen() {
                 <Text style={styles.quickEmail}>{SUPPORT_EMAIL}</Text>
               </View>
             </Pressable>
+            <Pressable
+              onPress={handleOpenWebsite}
+              style={({ pressed }) => [styles.quickButton, styles.quickButtonTop, pressed && styles.quickPressed]}
+            >
+              <Globe size={20} color="#0f172a" strokeWidth={2} />
+              <View style={styles.quickButtonText}>
+                <Text style={styles.quickLabel}>Open support website</Text>
+                <Text style={styles.quickEmail}>{CONTACT_PAGE_URL.replace(/^https?:\/\//, "")}</Text>
+              </View>
+            </Pressable>
           </View>
           )}
         </ScrollView>
@@ -332,18 +368,61 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 40,
   },
-  intro: {
+  infoCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    padding: 20,
+    marginBottom: 16,
+  },
+  infoEyebrow: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#475569",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  infoTitle: {
+    marginTop: 8,
+    fontSize: 22,
+    fontWeight: "600",
+    color: "#0f172a",
+  },
+  infoBody: {
+    marginTop: 8,
     fontSize: 15,
     lineHeight: 22,
     color: "#475569",
-    marginBottom: 16,
-    fontFamily: "Georgia",
   },
-  introEmail: {
-    fontSize: 15,
+  infoList: {
+    marginTop: 18,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 10,
+    backgroundColor: "#f8fafc",
+    overflow: "hidden",
+  },
+  infoRow: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 4,
+  },
+  infoDivider: {
+    height: 1,
+    backgroundColor: "#e2e8f0",
+  },
+  infoLabel: {
+    fontSize: 13,
     fontWeight: "600",
+    color: "#64748b",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+  },
+  infoValue: {
+    fontSize: 15,
     color: "#0f172a",
-    textDecorationLine: "underline",
+    fontWeight: "500",
   },
   formCard: {
     backgroundColor: "#fff",
@@ -352,6 +431,18 @@ const styles = StyleSheet.create({
     borderColor: "#e2e8f0",
     padding: 20,
     marginBottom: 24,
+  },
+  formTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#0f172a",
+    marginBottom: 4,
+  },
+  formIntro: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#64748b",
+    marginBottom: 16,
   },
   label: {
     fontSize: 14,
@@ -404,6 +495,9 @@ const styles = StyleSheet.create({
   },
   quickSection: {
     marginBottom: 24,
+  },
+  quickButtonTop: {
+    marginTop: 12,
   },
   quickTitle: {
     fontSize: 13,

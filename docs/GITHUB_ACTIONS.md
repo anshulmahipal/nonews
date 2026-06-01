@@ -14,6 +14,7 @@ Workflow file: `.github/workflows/android-native.yml`
 What it does:
 
 - installs workspace dependencies with `npm install`
+- computes `ANDROID_VERSION_CODE` automatically as `1000000 + github.run_number`
 - runs Expo Android prebuild inside `apps/expo` unless you skip it manually
 - builds a signed release AAB
 - uploads the built AAB as a GitHub Actions artifact
@@ -69,6 +70,9 @@ Required for the current Android workflow:
 Notes:
 
 - The current workflow builds a signed release AAB, so the keystore secrets must be present.
+- GitHub Actions auto-increments Android `versionCode` using `1000000 + github.run_number`.
+- If Google Play already has a higher `versionCode` than this sequence, increase `ANDROID_VERSION_CODE_BASE` in `.github/workflows/android-native.yml`.
+- Local builds default to Android `versionCode` `1` unless you set `ANDROID_VERSION_CODE` in your shell before building.
 - To create the base64 value locally:
 
 ```bash

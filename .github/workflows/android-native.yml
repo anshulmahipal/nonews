@@ -5,6 +5,7 @@ name: Android Native Build
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+  ANDROID_VERSION_CODE_BASE: "1000000"
 
 on:
   push:
@@ -107,6 +108,13 @@ jobs:
           # `npm ci` fails when package-lock.json is even slightly out of sync with workspace package.json files
           # (common after dependency edits without a fresh lockfile). `npm install` reconciles the tree reliably on CI.
           npm install --no-audit --no-fund
+
+      - name: Compute Android versionCode
+        run: |
+          set -euo pipefail
+          version_code=$((ANDROID_VERSION_CODE_BASE + GITHUB_RUN_NUMBER))
+          echo "ANDROID_VERSION_CODE=$version_code" >> "$GITHUB_ENV"
+          echo "Using Android versionCode: $version_code"
 
       - name: Generate native Android project (apps/expo/android)
         if: ${{ !((github.event_name == 'workflow_dispatch') && github.event.inputs.skip_expo_prebuild) }}

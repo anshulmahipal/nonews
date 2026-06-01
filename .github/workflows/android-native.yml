@@ -11,6 +11,7 @@ on:
     branches:
       - main
       - development
+      - "release/**"
     paths:
       - "apps/expo/**"
       - "packages/**"

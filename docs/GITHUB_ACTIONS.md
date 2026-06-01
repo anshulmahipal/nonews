@@ -13,23 +13,22 @@ Workflow file: `.github/workflows/android-native.yml`
 
 What it does:
 
-- installs workspace dependencies with `npm ci`
-- runs `expo prebuild` for Android inside `apps/expo`
-- builds one of:
-  - debug APK
-  - release APK
-  - release AAB
-- uploads the built artifact to the GitHub Actions run
+- installs workspace dependencies with `npm install`
+- runs Expo Android prebuild inside `apps/expo` unless you skip it manually
+- builds a signed release AAB
+- uploads the built AAB as a GitHub Actions artifact
 
 Triggers:
 
 - push to `main`
 - push to `development`
+- push to `release/**`
+- only when the push touches `apps/expo/**`, `packages/**`, root package files, or the workflow file
 - manual `workflow_dispatch`
 
 Manual input:
 
-- `build_profile`: `debug-apk`, `release-apk`, or `release-aab`
+- `skip_expo_prebuild`: skip Expo prebuild only if `apps/expo/android` is already committed
 
 ### Expo OTA update
 
@@ -37,7 +36,7 @@ Workflow file: `.github/workflows/ota-update.yml`
 
 What it does:
 
-- installs workspace dependencies with `npm ci`
+- installs workspace dependencies with `npm install`
 - authenticates with Expo using `EXPO_TOKEN`
 - runs `eas update` from `apps/expo`
 
@@ -60,7 +59,7 @@ Required for all builds that need app config values:
 - `EXPO_PUBLIC_SUPABASE_URL`
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY`
 
-Required only for signed release builds:
+Required for the current Android workflow:
 
 - `ANDROID_KEYSTORE_BASE64`
 - `ANDROID_KEYSTORE_PASSWORD`
@@ -69,8 +68,7 @@ Required only for signed release builds:
 
 Notes:
 
-- `debug-apk` does not require signing secrets.
-- `release-apk` and `release-aab` expect a keystore in base64 form.
+- The current workflow builds a signed release AAB, so the keystore secrets must be present.
 - To create the base64 value locally:
 
 ```bash
@@ -91,9 +89,10 @@ Create the Expo token at:
 
 ### Native Android
 
-1. Push to `main` or `development` to get a debug APK artifact automatically.
-2. Use `workflow_dispatch` when you want a release APK or release AAB.
-3. Download the artifact from the Actions run page.
+1. Push to `main`, `development`, or `release/**` to trigger an Android build automatically.
+2. Make sure the push includes a file under `apps/expo/**`, `packages/**`, `package.json`, `package-lock.json`, `.npmrc`, or `.github/workflows/android-native.yml`.
+3. Use `workflow_dispatch` when you want to run it manually or skip Expo prebuild.
+4. Download the release AAB artifact from the Actions run page.
 
 ### OTA updates
 

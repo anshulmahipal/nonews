@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { Nav } from "./Nav";
 import { Footer } from "./Footer";
 
-const HIDE_NAV_PATHS = ["/login", "/auth/callback"];
+const HIDE_NAV_PATHS = ["/login", "/auth/callback", "/oauth/callback"];
 
 function shouldShowNav(pathname: string | null): boolean {
   if (!pathname) return true;

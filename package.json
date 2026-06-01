@@ -6,11 +6,15 @@
   "workspaces": [
     "apps/expo",
     "apps/web",
+    "apps/short-link-worker",
+    "apps/url-shortener",
     "packages/*"
   ],
   "scripts": {
     "build": "turbo build",
     "start:web": "npm run build --workspace=@nonews/web && cd apps/web && npm run start",
+    "dev:shortener": "npm --workspace @nonews/url-shortener run dev",
+    "start:shortener": "npm --workspace @nonews/url-shortener run start",
     "expo": "expo start ./apps/expo",
     "start:expo": "expo start ./apps/expo",
     "eas:build:android": "npm --workspace @nonews/expo run eas:build:android",

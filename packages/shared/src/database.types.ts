@@ -154,6 +154,45 @@ export interface Database {
         };
         Relationships: [];
       };
+      article_short_links: {
+        Row: {
+          id: string;
+          title: string;
+          original_url: string;
+          short_code: string;
+          click_count: number;
+          ios_deep_link: string | null;
+          android_deep_link: string | null;
+          web_fallback_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          title: string;
+          original_url: string;
+          short_code: string;
+          click_count?: number;
+          ios_deep_link?: string | null;
+          android_deep_link?: string | null;
+          web_fallback_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          original_url?: string;
+          short_code?: string;
+          click_count?: number;
+          ios_deep_link?: string | null;
+          android_deep_link?: string | null;
+          web_fallback_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;
@@ -325,4 +364,6 @@ export type Enums<T extends keyof Database["public"]["Enums"]> =
 export type SourceRow = Tables<"sources">;
 export type ArticleRow = Tables<"articles">;
 export type ArticleInsert = Insertable<"articles">;
+export type ArticleShortLinkRow = Tables<"article_short_links">;
+export type ArticleShortLinkInsert = Insertable<"article_short_links">;
 export type SourceInsert = Insertable<"sources">;

@@ -1,5 +1,6 @@
 import { useBookmarks } from "../../hooks/useBookmarks";
 import { supabase } from "../../lib/supabase";
+import { editorialCanonicalUrl, shortenUrlForShare } from "@nonews/shared";
 import { SummaryCard, type ArticleWithSource } from "@nonews/ui";
 import { useQuery } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
@@ -46,15 +47,17 @@ export default function ArticleScreen() {
     });
   }, []);
 
-  const handleShare = useCallback(() => {
+  const handleShare = useCallback(async () => {
     if (!article) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const longUrl = editorialCanonicalUrl(article.id);
+    const shareUrl = await shortenUrlForShare(longUrl);
     const message =
-      [article.title, article.ai_summary ?? "", article.link].filter(Boolean).join("\n\n") || article.link;
+      [article.title, article.ai_summary ?? "", shareUrl].filter(Boolean).join("\n\n") || shareUrl;
     Share.share({
       title: article.title,
       message,
-      url: article.link,
+      url: shareUrl,
     });
   }, [article]);
 
@@ -135,9 +138,12 @@ export default function ArticleScreen() {
           onReadFull={handleReadFull}
           isBookmarked={isBookmarked(article.id)}
           onToggleBookmark={() => toggleBookmark(article.id)}
-          onShare={() => {
-            const message = [article.title, article.ai_summary ?? "", article.link].filter(Boolean).join("\n\n") || article.link;
-            Share.share({ title: article.title, message, url: article.link });
+          onShare={async () => {
+            const longUrl = editorialCanonicalUrl(article.id);
+            const shareUrl = await shortenUrlForShare(longUrl);
+            const message =
+              [article.title, article.ai_summary ?? "", shareUrl].filter(Boolean).join("\n\n") || shareUrl;
+            Share.share({ title: article.title, message, url: shareUrl });
           }}
         />
       </ScrollView>

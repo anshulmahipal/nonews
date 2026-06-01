@@ -1,5 +1,6 @@
 "use client";
 
+import { editorialCanonicalUrl, shortenUrlForShare } from "@nonews/shared";
 import { SummaryCard, type ArticleWithSource } from "@nonews/ui";
 import Link from "next/link";
 
@@ -19,10 +20,13 @@ export function EditorialsListClient({ articles }: EditorialsListClientProps) {
           <SummaryCard
             item={item}
             onReadFull={handleReadFull}
-            onShare={() => {
-              const text = [item.title, item.ai_summary ?? "", item.link].filter(Boolean).join("\n\n") || item.link;
+            onShare={async () => {
+              const longUrl = editorialCanonicalUrl(item.id);
+              const shareUrl = await shortenUrlForShare(longUrl);
+              const text =
+                [item.title, item.ai_summary ?? "", shareUrl].filter(Boolean).join("\n\n") || shareUrl;
               if (typeof navigator !== "undefined" && navigator.share) {
-                navigator.share({ title: item.title, text, url: item.link });
+                await navigator.share({ title: item.title, text, url: shareUrl });
               } else {
                 navigator.clipboard?.writeText(text);
               }

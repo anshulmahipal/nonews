@@ -3,6 +3,12 @@
  */
 
 export { APP_NAME, SITE_DOMAIN, SITE_URL } from "./branding";
+export {
+  isAllowedEditorialShareUrl,
+  getShortenApiBase,
+  shortenUrlForShare,
+  editorialCanonicalUrl,
+} from "./shareShortLink";
 export type { Article, Source, AuthorStance, ArticleStatus } from "./types";
 export {
   createSupabaseClient,
@@ -18,6 +24,8 @@ export type {
   SourceRow,
   ArticleRow,
   ArticleInsert,
+  ArticleShortLinkRow,
+  ArticleShortLinkInsert,
   SourceInsert,
   SourceStatus,
 } from "./database.types";

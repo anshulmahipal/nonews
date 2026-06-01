@@ -1,5 +1,6 @@
 "use client";
 
+import { editorialCanonicalUrl, shortenUrlForShare } from "@nonews/shared";
 import { SummaryCard, type ArticleWithSource } from "@nonews/ui";
 
 interface EditorialCardClientProps {
@@ -11,10 +12,13 @@ export function EditorialCardClient({ article }: EditorialCardClientProps) {
     if (typeof window !== "undefined") window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const handleShare = () => {
-    const text = [article.title, article.ai_summary ?? "", article.link].filter(Boolean).join("\n\n") || article.link;
+  const handleShare = async () => {
+    const longUrl = editorialCanonicalUrl(article.id);
+    const shareUrl = await shortenUrlForShare(longUrl);
+    const text =
+      [article.title, article.ai_summary ?? "", shareUrl].filter(Boolean).join("\n\n") || shareUrl;
     if (typeof navigator !== "undefined" && navigator.share) {
-      navigator.share({ title: article.title, text, url: article.link });
+      await navigator.share({ title: article.title, text, url: shareUrl });
     } else {
       navigator.clipboard?.writeText(text);
     }

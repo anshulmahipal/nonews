@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "../../hooks/useAuth";
 import { useBookmarks } from "../../hooks/useBookmarks";
-import { createSupabaseClient } from "@nonews/shared";
+import { createSupabaseClient, editorialCanonicalUrl, shortenUrlForShare } from "@nonews/shared";
 import { SummaryCard, type ArticleWithSource } from "@nonews/ui";
 import { useQuery } from "@tanstack/react-query";
 
@@ -125,10 +125,13 @@ export default function LibraryPage() {
               isBookmarked={isBookmarked(item.id)}
               onToggleBookmark={() => toggleBookmark(item.id)}
               isBookmarkDisabled={isToggling(item.id)}
-              onShare={() => {
-                const text = [item.title, item.ai_summary ?? "", item.link].filter(Boolean).join("\n\n") || item.link;
+              onShare={async () => {
+                const longUrl = editorialCanonicalUrl(item.id);
+                const shareUrl = await shortenUrlForShare(longUrl);
+                const text =
+                  [item.title, item.ai_summary ?? "", shareUrl].filter(Boolean).join("\n\n") || shareUrl;
                 if (typeof navigator !== "undefined" && navigator.share) {
-                  navigator.share({ title: item.title, text, url: item.link });
+                  await navigator.share({ title: item.title, text, url: shareUrl });
                 } else {
                   navigator.clipboard?.writeText(text);
                 }

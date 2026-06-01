@@ -1,5 +1,6 @@
 import { useBookmarks } from "../../hooks/useBookmarks";
 import { supabase } from "../../lib/supabase";
+import { editorialCanonicalUrl, shortenUrlForShare } from "@nonews/shared";
 import { SummaryCard, type ArticleWithSource } from "@nonews/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
@@ -305,9 +306,12 @@ export default function LibraryTab() {
         onReadFull={handleReadFull}
         isBookmarked={isBookmarked(item.id)}
         onToggleBookmark={() => toggleBookmark(item.id)}
-        onShare={() => {
-          const message = [item.title, item.ai_summary ?? "", item.link].filter(Boolean).join("\n\n") || item.link;
-          Share.share({ title: item.title, message, url: item.link });
+        onShare={async () => {
+          const longUrl = editorialCanonicalUrl(item.id);
+          const shareUrl = await shortenUrlForShare(longUrl);
+          const message =
+            [item.title, item.ai_summary ?? "", shareUrl].filter(Boolean).join("\n\n") || shareUrl;
+          Share.share({ title: item.title, message, url: shareUrl });
         }}
       />
     ),

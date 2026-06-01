@@ -1,7 +1,11 @@
 import { useBookmarks } from "../../hooks/useBookmarks";
 import { supabase } from "../../lib/supabase";
 import { SummaryCard, type ArticleWithSource } from "@nonews/ui";
-import type { AuthorStance } from "@nonews/shared";
+import {
+  type AuthorStance,
+  editorialCanonicalUrl,
+  shortenUrlForShare,
+} from "@nonews/shared";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import * as WebBrowser from "expo-web-browser";
@@ -240,9 +244,12 @@ export default function AuthorProfileScreen() {
         onReadFull={handleReadFull}
         isBookmarked={isBookmarked(item.id)}
         onToggleBookmark={() => toggleBookmark(item.id)}
-        onShare={() => {
-          const message = [item.title, item.ai_summary ?? "", item.link].filter(Boolean).join("\n\n") || item.link;
-          Share.share({ title: item.title, message, url: item.link });
+        onShare={async () => {
+          const longUrl = editorialCanonicalUrl(item.id);
+          const shareUrl = await shortenUrlForShare(longUrl);
+          const message =
+            [item.title, item.ai_summary ?? "", shareUrl].filter(Boolean).join("\n\n") || shareUrl;
+          Share.share({ title: item.title, message, url: shareUrl });
         }}
       />
     ),
